@@ -1,0 +1,9 @@
+# Exclude workspace files from Docker build context
+.git
+.gitignore
+README.md
+.vscode
+.cursor
+node_modules
+.env*
+*.log 

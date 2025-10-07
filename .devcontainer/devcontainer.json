@@ -1,0 +1,131 @@
+{
+	"name": "Ruby on Rails with Vue.js + PostgreSQL (Persistent)",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			"RUBY_VERSION": "3.3.7",
+			"NODE_VERSION": "22",
+			"POSTGRES_VERSION": "15",
+			"DATABASE_USERNAME": "dbuser",
+			"DATABASE_PASSWORD": "password"
+		}
+	},
+
+	// Configure tool-specific properties.
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"terminal.integrated.profiles.linux": {
+					"bash": {
+						"path": "/bin/bash",
+						"args": ["-l"]
+					}
+				},
+				"ruby.codeCompletion": "rcodetools",
+				"ruby.intellisense": "rubyLocate",
+				"ruby.useBundler": true,
+				"ruby.useLanguageServer": true,
+				"files.associations": {
+					"*.html.erb": "erb"
+				}
+			},
+			
+			// Add the IDs of extensions you want installed when the container is created.
+			// TEMPORARILY REDUCED for debugging - keeping only essential ones
+			"extensions": [
+				// "rebornix.Ruby",
+				// "wingrunr21.vscode-ruby",
+				// "Shopify.ruby-lsp",  // Keep one Ruby extension
+				// "octref.vetur",
+				// "Vue.volar",  // Keep one Vue extension
+				// "Vue.vscode-typescript-vue-plugin",
+				// "ms-vscode.vscode-typescript-next",
+				// "esbenp.prettier-vscode"
+				// "formulahendry.auto-rename-tag",
+				// "ms-vscode.vscode-json",
+				// "redhat.vscode-yaml",
+				// "ms-vscode.vscode-postgresql",
+				// "Anthropic.claude-code"  // Heavy extension - disabled temporarily
+			]
+		}
+	},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [3000, 3001, 5432, 8080, 5173],
+
+	// Use 'postCreateCommand' to run once after container creation
+	"postCreateCommand": "./.devcontainer/postCreateCommand.sh",
+
+	// Use 'postStartCommand' to run after every container start
+	"postStartCommand": "./.devcontainer/postStartCommand.sh",
+
+	// Install Claude Code and MCPs after container starts
+	"postAttachCommand": "./.devcontainer/postAttachCommand.sh",
+
+	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode",
+
+	// Set environment variables
+	"remoteEnv": {
+		"DISABLED_SERVICES": "mongodb",
+		"PATH": "/home/vscode/.rvm/bin:${containerEnv:PATH}",
+		"RUBY_VERSION": "3.3.7",
+		"NODE_VERSION": "22",
+		"DATABASE_URL": "${containerEnv:DATABASE_URL}",
+		"POSTGRES_VERSION": "15"
+	},
+
+	// Mount the workspace folder
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+	"workspaceFolder": "/workspace",
+
+	// Mount configurations with proper permissions
+	"mounts": [
+		// SSH keys for git operations
+		{
+			"source": "${localEnv:HOME}${localEnv:USERPROFILE}/.ssh",
+			"target": "/home/vscode/.ssh",
+			"type": "bind",
+			"consistency": "cached"
+		},
+		// Ruby gems cache for faster rebuilds
+		{
+			"source": "${localWorkspaceFolder}/.gems-cache",
+			"target": "/home/vscode/.rvm/gems",
+			"type": "bind",
+			"consistency": "delegated"
+		},
+		// PostgreSQL data persistence - CRITICAL for data retention
+		{
+			"source": "${localWorkspaceFolder}/.DB_data",
+			"target": "/var/lib/postgresql-data",
+			"type": "bind",
+			"consistency": "delegated"
+		},
+		// PostgreSQL logs for debugging (optional but recommended)
+		{
+			"source": "${localWorkspaceFolder}/.DB_logs",
+			"target": "/var/log/postgresql",
+			"type": "bind",
+			"consistency": "delegated"
+		}
+	],
+
+
+	// // Lifecycle scripts for proper shutdown
+	// "shutdownAction": "stopContainer",
+	// "waitFor": "postCreateCommand",
+
+	// // Container capabilities
+	// "capAdd": ["SYS_PTRACE"],
+	// "securityOpt": ["seccomp=unconfined"],
+
+	// Run init process to properly handle signals
+	"init": true,
+	
+	// Allow Dockerfile ENTRYPOINT to run (starts PostgreSQL)
+	"overrideCommand": false
+}
