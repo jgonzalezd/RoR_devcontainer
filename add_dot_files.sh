@@ -37,10 +37,6 @@ echo "Using Ruby version: $RUBY_VERSION"
 # Navigate to the project directory
 cd "$PROJECT_DIR"
 
-# Remove existing Gemfile and create new one
-rm -f Gemfile Gemfile.lock
-bundle init
-
 # Create .ruby-version file
 echo "$RUBY_VERSION" > .ruby-version
 
