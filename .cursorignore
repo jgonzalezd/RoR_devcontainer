@@ -1,0 +1,90 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+
+# Temporary directories and cache files
+**/tmp/
+**/tmp/**
+**/cache/
+**/cache/**
+**/.cache/
+**/.cache/**
+
+# Build artifacts and compiled assets
+**/node_modules/
+**/dist/
+**/build/
+**/public/assets/
+**/public/packs/
+**/public/packs-test/
+**/coverage/
+
+# Logs
+**/log/
+**/logs/
+**/*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+
+# Storage and uploads
+**/storage/
+**/public/uploads/
+**/public/system/
+
+# Vendor and dependencies
+**/vendor/bundle/
+**/vendor/assets/bower_components/
+**/.bundle/
+
+# Rails specific temporary files
+**/spec/tmp/
+**/rerun.txt
+**/pickle-email-*.html
+**/capybara-*.html
+
+# Database files
+**/*.sqlite3
+**/*.sqlite3-journal
+**/*.sqlite3-[0-9]*
+
+# IDE and editor files
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+**/*.suo
+**/*.ntvs*
+**/*.njsproj
+**/*.sln
+**/*.sw?
+
+# OS generated files
+**/.DS_Store
+**/.DS_Store?
+**/._*
+**/.Spotlight-V100
+**/.Trashes
+**/ehthumbs.db
+**/Thumbs.db
+
+# Test coverage
+**/.nyc_output/
+**/*.lcov
+
+# ESLint cache
+**/.eslintcache
+
+# Vue/Vite cache
+**/.vite-cache/
+
+# Process files
+**/pids/
+**/*.pid
+**/*.seed
+**/*.pid.lock
+
+# Git directories (in case of nested repos)
+**/.git/
+
+# Docker and container files
+**/.kamal/ 
