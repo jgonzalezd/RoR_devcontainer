@@ -84,6 +84,11 @@
 
 	// Mount configurations with proper permissions
 	"mounts": [
+		{
+			"source": "${localEnv:HOME}/.tz", // This is a placeholder; actually use the system timezone
+			"target": "/etc/localtime",
+			"type": "bind"
+		},
 		// SSH keys for git operations
 		{
 			"source": "${localEnv:HOME}${localEnv:USERPROFILE}/.ssh",
