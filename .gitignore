@@ -89,3 +89,9 @@ debug/
 .dynamodb/
 .tern-port
 
+# Added to ignore temporary and cache directories to reduce Git active changes warning
+.DB_backups/
+.DB_data/
+.gems-cache/
+
+

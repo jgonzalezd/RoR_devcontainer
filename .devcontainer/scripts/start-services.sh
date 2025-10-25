@@ -28,7 +28,13 @@ fi
 
 echo "✅ Service initialization orchestration complete"
 
-# Continue with the container's default command (login as vscode)
-exec "$@"
+# If no arguments provided, keep container running
+if [ $# -eq 0 ]; then
+    echo "🔧 No command provided, keeping container alive..."
+    exec sleep infinity
+else
+    # Continue with the provided command
+    exec "$@"
+fi
 
 

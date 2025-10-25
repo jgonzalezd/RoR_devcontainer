@@ -101,24 +101,36 @@ check_postgres_binaries() {
     done
 }
 
-# Start PostgreSQL server
+# Start PostgreSQL server with retry logic
 start_postgres() {
     local pg_ctl="/usr/lib/postgresql/${PGVER}/bin/pg_ctl"
-    
+    local max_retries=3
+    local retry_count=0
+
     log_info "Starting PostgreSQL server..."
-    if ! run_as_postgres "$pg_ctl" -D "$PGDATA" -l "$PG_LOG" start; then
-        log_error "Failed to start PostgreSQL"
-        show_postgres_logs
-        exit 1
-    fi
-    
-    if ! wait_for_postgres "$STARTUP_TIMEOUT"; then
-        log_error "PostgreSQL failed to become ready within ${STARTUP_TIMEOUT} seconds"
-        show_postgres_logs
-        exit 1
-    fi
-    
-    log_success "PostgreSQL is ready"
+
+    while [ $retry_count -lt $max_retries ]; do
+        if run_as_postgres "$pg_ctl" -D "$PGDATA" -l "$PG_LOG" start 2>/dev/null; then
+            if wait_for_postgres "$STARTUP_TIMEOUT"; then
+                log_success "PostgreSQL is ready"
+                return 0
+            fi
+        fi
+
+        retry_count=$((retry_count + 1))
+        log_info "PostgreSQL start attempt $retry_count failed, retrying in 5 seconds..."
+
+        # Stop any partially started process
+        run_as_postgres "$pg_ctl" -D "$PGDATA" stop -m fast 2>/dev/null || true
+
+        if [ $retry_count -lt $max_retries ]; then
+            sleep 5
+        fi
+    done
+
+    log_error "Failed to start PostgreSQL after $max_retries attempts"
+    show_postgres_logs
+    exit 1
 }
 
 # Setup directory with correct permissions
@@ -226,17 +238,72 @@ start_existing_cluster() {
     start_postgres
 }
 
+# Check data directory integrity
+check_data_integrity() {
+    log_info "Checking data directory integrity..."
+
+    # Check for critical system catalog files
+    local critical_files=("PG_VERSION" "global/pg_control" "postgresql.conf")
+    local missing_files=()
+
+    for file in "${critical_files[@]}"; do
+        if [ ! -f "$PGDATA/$file" ]; then
+            missing_files+=("$file")
+        fi
+    done
+
+    if [ ${#missing_files[@]} -gt 0 ]; then
+        log_error "Data directory corruption detected. Missing files: ${missing_files[*]}"
+        log_info "Data directory will be reinitialized..."
+        return 1
+    fi
+
+    # Check if we can read the control file (basic sanity check)
+    if ! run_as_postgres test -r "$PGDATA/global/pg_control"; then
+        log_error "Cannot read PostgreSQL control file. Data corruption suspected."
+        return 1
+    fi
+
+    log_success "Data directory integrity check passed"
+    return 0
+}
+
+# Create backup of data directory before risky operations
+create_backup() {
+    local backup_dir="/var/lib/postgresql-backup"
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+
+    if [ -d "$PGDATA" ] && [ "$(ls -A $PGDATA 2>/dev/null)" ]; then
+        log_info "Creating backup before recovery..."
+        sudo mkdir -p "$backup_dir"
+        sudo cp -r "$PGDATA" "$backup_dir/data_$timestamp"
+        log_success "Backup created at $backup_dir/data_$timestamp"
+    fi
+}
+
 # Verify PostgreSQL connection and display info
 verify_connection() {
     log_info "Verifying connection..."
-    
+
     if ! run_as_postgres psql -c "SELECT version();" >/dev/null 2>&1; then
         log_error "Failed to connect to PostgreSQL"
         show_postgres_logs
         exit 1
     fi
-    
+
     log_success "Connection verified"
+
+    # Create a backup after successful startup (only if this is the first time)
+    if [ ! -f "/tmp/backup_created" ]; then
+        log_info "Creating initial backup after successful startup..."
+        if /usr/local/bin/devcontainer-scripts/services/backup-postgresql.sh create >/dev/null 2>&1; then
+            log_success "Initial backup created successfully"
+            touch /tmp/backup_created
+        else
+            echo "⚠️  [PostgreSQL] Failed to create initial backup, but PostgreSQL is working"
+        fi
+    fi
+
     echo "📊 [PostgreSQL] Info:"
     echo "   - Version: $(run_as_postgres psql -t -c 'SELECT version();' | head -n1 | xargs)"
     echo "   - Data directory: $PGDATA"
@@ -251,22 +318,41 @@ verify_connection() {
 
 main() {
     log_info "Initializing (version: ${PGVER}, data: ${PGDATA})"
-    
+
     # Verify PostgreSQL installation
     check_postgres_binaries
-    
+
     # Setup directories
     setup_directory "/var/log/postgresql" "755" "log directory"
     setup_directory "/var/run/postgresql" "775" "runtime socket directory"
     setup_directory "$PGDATA" "700" "data directory"
-    
-    # Initialize or start cluster
+
+    # Check if this is a new or existing cluster
     if [ ! -f "$PGDATA/PG_VERSION" ]; then
+        log_info "No existing cluster found, initializing new cluster"
         initialize_cluster
     else
-        start_existing_cluster
+        log_info "Existing cluster found, checking integrity..."
+
+        # Check data integrity before proceeding
+        if ! check_data_integrity; then
+            log_error "Data integrity check failed, recovering cluster..."
+
+            # Create backup before recovery (if data exists)
+            create_backup
+
+            # Remove corrupted data
+            log_info "Removing corrupted data directory..."
+            sudo rm -rf "$PGDATA"/*
+
+            # Reinitialize cluster
+            initialize_cluster
+        else
+            log_success "Data integrity check passed, starting existing cluster"
+            start_existing_cluster
+        fi
     fi
-    
+
     # Verify everything works
     verify_connection
 }

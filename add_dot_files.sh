@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to add dotfiles to new Rails projects
+# Script to add dotfiles to new Rails projects .rvmrc .ruby-version .ruby-gemset
 # Usage: ./add_dot_files.sh <project_name_or_path>
 
 if [ $# -ne 1 ]; then
@@ -10,14 +10,10 @@ fi
 
 INPUT=$1
 
-# Check if the input is a full path or just a project name
-if [[ "$INPUT" == *"/"* ]]; then
-    PROJECT_DIR="$INPUT"
-    PROJECT_NAME=$(basename "$INPUT")
-else
-    PROJECT_DIR="/workspace/projects_own/$INPUT"
-    PROJECT_NAME="$INPUT"
-fi
+# Resolve the full path of the input to handle relative paths like .. or ./..
+FULL_PATH=$(realpath "$INPUT")
+PROJECT_DIR="$FULL_PATH"
+PROJECT_NAME=$(basename "$FULL_PATH")
 
 # Check if project directory exists
 if [ ! -d "$PROJECT_DIR" ]; then

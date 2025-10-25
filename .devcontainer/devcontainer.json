@@ -111,13 +111,20 @@
 			"target": "/var/log/postgresql",
 			"type": "bind",
 			"consistency": "delegated"
+		},
+		// PostgreSQL backups for data recovery
+		{
+			"source": "${localWorkspaceFolder}/.DB_backups",
+			"target": "/var/lib/postgresql-backup",
+			"type": "bind",
+			"consistency": "delegated"
 		}
 	],
 
 
-	// // Lifecycle scripts for proper shutdown
-	// "shutdownAction": "stopContainer",
-	// "waitFor": "postCreateCommand",
+	// Lifecycle scripts for proper shutdown and cleanup
+	"shutdownAction": "stopContainer",
+	"waitFor": "postCreateCommand",
 
 	// // Container capabilities
 	// "capAdd": ["SYS_PTRACE"],
