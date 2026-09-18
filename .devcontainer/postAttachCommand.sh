@@ -1,13 +1,9 @@
 #!/bin/bash -l
 set -o pipefail
 
-# echo "Installing Claude Code CLI and MCPs..."
-# npm install -g @anthropic-ai/claude-code
-# npm install -g task-master-ai@latest
-# npm install -g bats
-# claude mcp add taskmaster "$(which task-master-ai)" || true
-# claude mcp add --transport sse context7 https://mcp.context7.com/sse || true
-# echo "Claude Code CLI: $(claude --version 2>/dev/null || echo "not installed")"
+# Claude Code (`claude`) and Pi (`pi`) are installed at image build time in
+# .devcontainer/Dockerfile, not here. Installing them on attach re-downloaded
+# roughly 397 MB on every attach and hid build failures.
 
 # Ensure RVM is loaded and Rails is available
 [ -s "$HOME/.rvm/scripts/rvm" ] && source "$HOME/.rvm/scripts/rvm"

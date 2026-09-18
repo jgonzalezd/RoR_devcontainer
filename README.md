@@ -11,6 +11,20 @@ The DevContainer is built on `ubuntu:22.04` and configured to provide a consiste
 - **SSH Integration**: Configures SSH for seamless integration with version control systems.
 - **Shell Consistency**: Employs system-wide and user-specific shell initialization scripts (`.bashrc`, `.bash_profile`, `/etc/profile.d/nvm.sh`, `/etc/profile.d/rvm.sh`) to guarantee consistent environment loading across all shell sessions (login and non-login).
 
+### AI Coding Agent CLIs
+Two agent CLIs are installed into the image at build time, so no container start re-downloads them:
+
+| Command | Package | Pinned by |
+|---|---|---|
+| `claude` | `@anthropic-ai/claude-code` | `CLAUDE_CODE_VERSION` build arg |
+| `pi` | `@earendil-works/pi-coding-agent` ([pi.dev](https://pi.dev)) | `PI_VERSION` build arg |
+
+Both build args default to `latest`, so a rebuild picks up the current release. Set either to an exact version in the `args` block of `.devcontainer/devcontainer.json` to pin it.
+
+The two packages need different `npm` flags. Claude Code downloads its native binary in a postinstall script, so install scripts must stay enabled; installing it with `--ignore-scripts` appears to succeed and then fails at runtime with `Error: claude native binary not installed`. Pi's own documentation at pi.dev specifies `--ignore-scripts`. The Dockerfile applies each flag to the correct package.
+
+Neither CLI is authenticated by the build. Claude Code stores its credentials under `~/.claude` inside the container and Pi requires model-provider API keys, so both need signing in again after a rebuild unless you mount a credentials directory.
+
 ### Persistent Data Management
 The DevContainer ensures data persistence across container lifecycles (restarts and rebuilds) through named Docker volumes and bind mounts:
 - **Database Data**: PostgreSQL data is persisted in the named Docker volume `postgres-data`, mounted at `/var/lib/postgresql-data`.

@@ -28,6 +28,8 @@ check_tool "Node.js" node --version
 check_tool "npm" npm --version
 check_tool "yarn" yarn --version
 check_tool "Vue CLI" vue --version
+check_tool "Claude Code" claude --version
+check_tool "Pi" pi --version
 
 echo ""
 if [ "${#MISSING_TOOLS[@]}" -gt 0 ]; then

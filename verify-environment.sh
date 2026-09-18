@@ -22,6 +22,8 @@ check_tool "Ruby" ruby --version
 check_tool "Rails" rails --version
 check_tool "Node.js" node --version
 check_tool "Vue CLI" vue --version
+check_tool "Claude Code" claude --version
+check_tool "Pi" pi --version
 
 echo ""
 echo "🗃️  PostgreSQL Configuration:"

@@ -113,6 +113,35 @@ RUN source ~/.rvm/scripts/rvm \
 # Ensure RVM and Node.js are loaded in the shell environment
 ENV PATH="/home/vscode/.rvm/bin:/home/vscode/.nvm/versions/node/v${NODE_VERSION}/bin:${PATH}"
 
+# Install the AI coding agent CLIs: Claude Code (`claude`) and Pi (`pi`).
+#
+# The two need DIFFERENT npm flags, and getting this wrong fails quietly:
+#
+#   - @anthropic-ai/claude-code ships a 184 KB npm package and downloads its
+#     real native binary in a postinstall script. Installing it with
+#     --ignore-scripts "succeeds" and then every run reports
+#     "Error: claude native binary not installed". So scripts must stay ON.
+#   - @earendil-works/pi-coding-agent is the package name published at
+#     https://pi.dev (repo: github.com/earendil-works/pi, MIT). pi.dev's own
+#     install instructions specify --ignore-scripts, so that flag is the
+#     vendor's guidance here, not a security workaround.
+#
+# Both are installed at build time rather than on attach, so no container
+# start pays the ~397 MB download again.
+#
+# These two ARGs are declared HERE rather than at the top of the file on
+# purpose. An ARG at the top invalidates every layer below it when its value
+# changes, so bumping a CLI version would recompile Ruby, which takes minutes.
+# Declared here, a version bump rebuilds only this layer and the ones after it.
+# "latest" tracks upstream on each rebuild; set an exact version to pin one.
+ARG CLAUDE_CODE_VERSION=latest
+ARG PI_VERSION=latest
+RUN . $NVM_DIR/nvm.sh \
+    && npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} \
+    && npm install -g --ignore-scripts @earendil-works/pi-coding-agent@${PI_VERSION} \
+    && claude --version \
+    && pi --version
+
 # Setup shell initialization with proper guard against double-loading
 # Add NVM and RVM loading to .bashrc for interactive shells
 RUN printf '%s\n' \
