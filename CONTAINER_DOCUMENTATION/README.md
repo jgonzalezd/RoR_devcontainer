@@ -96,10 +96,15 @@ Container Environment:
         └── maintenance.sh         # Maintenance utilities
 
 Host Environment:
-├── .DB_data/                      # Mounted to /var/lib/postgresql-data/
 ├── .DB_logs/                      # Mounted to /var/log/postgresql/
 └── .DB_backups/                   # Mounted to /var/lib/postgresql-backup/
+
+Docker Volumes (not on the host filesystem):
+├── postgres-data                  # Mounted to /var/lib/postgresql-data/
+└── rvm-gems                       # Mounted to /home/vscode/.rvm/gems/
 ```
+
+PostgreSQL data is not bind-mounted to the host. It lives in the named Docker volume `postgres-data`, because this repo is under iCloud Drive and Postgres data files must not sit on a sync-and-evict filesystem.
 
 ## Common Tasks
 

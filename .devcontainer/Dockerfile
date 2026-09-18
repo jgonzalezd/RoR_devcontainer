@@ -4,11 +4,13 @@ FROM ubuntu:22.04
 ARG POSTGRES_VERSION=15
 ARG RUBY_VERSION=3.3.7
 ARG NODE_VERSION=22
+ARG RAILS_VERSION=7.2.2
 ARG DATABASE_USERNAME=dbuser
 ARG DATABASE_PASSWORD=password
 ENV POSTGRES_VERSION=${POSTGRES_VERSION}
 ENV RUBY_VERSION=${RUBY_VERSION}
 ENV NODE_VERSION=${NODE_VERSION}
+ENV RAILS_VERSION=${RAILS_VERSION}
 ENV DATABASE_USERNAME=${DATABASE_USERNAME}
 ENV DATABASE_PASSWORD=${DATABASE_PASSWORD}
 
@@ -85,6 +87,16 @@ RUN mkdir -p $NVM_DIR \
     && nvm alias default ${NODE_VERSION} \
     && nvm use default
 
+# Install yarn (via Node's bundled corepack, so the version is managed by Node)
+# and the Vue CLI (provides the `vue` command). Verify both here so a failure
+# breaks the build instead of surfacing later as "Not found".
+RUN . $NVM_DIR/nvm.sh \
+    && corepack enable \
+    && corepack prepare yarn@stable --activate \
+    && npm install -g @vue/cli \
+    && yarn --version \
+    && vue --version
+
 # Install RVM
 RUN gpg --keyserver keyserver.ubuntu.com --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB \
     && curl -sSL https://get.rvm.io | bash -s stable
@@ -94,7 +106,9 @@ SHELL ["/bin/bash", "-lc"]
 RUN source ~/.rvm/scripts/rvm \
     && rvm install ${RUBY_VERSION} \
     && rvm use ${RUBY_VERSION} --default \
-    && gem install bundler:2.3.26 rails
+    && gem install bundler:2.3.26 rails:${RAILS_VERSION} \
+    && gem list --exact rails \
+    && rails --version
 
 # Ensure RVM and Node.js are loaded in the shell environment
 ENV PATH="/home/vscode/.rvm/bin:/home/vscode/.nvm/versions/node/v${NODE_VERSION}/bin:${PATH}"
@@ -149,10 +163,11 @@ sudo -u postgres /usr/lib/postgresql/${POSTGRES_VERSION}/bin/pg_ctl -D /var/lib/
 echo "✅ PostgreSQL stopped"
 EOT
 
-# Set up the working directory and create .rvmrc
+# Set up the working directory. Gemset selection comes from the repo's own
+# .ruby-version and .ruby-gemset files, not a generated .rvmrc, so RVM picks
+# up the checked-in gemset name instead of one derived from the directory.
 WORKDIR /workspace
-RUN echo "rvm use ${RUBY_VERSION}@\${PWD##*/} --create" > /workspace/.rvmrc && \
-    echo "rvm_trust_rvmrcs_flag=1" >> ~/.rvmrc
+RUN echo "rvm_trust_rvmrcs_flag=1" >> ~/.rvmrc
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog

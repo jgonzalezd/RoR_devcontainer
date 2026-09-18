@@ -12,12 +12,26 @@ The DevContainer is built on `ubuntu:22.04` and configured to provide a consiste
 - **Shell Consistency**: Employs system-wide and user-specific shell initialization scripts (`.bashrc`, `.bash_profile`, `/etc/profile.d/nvm.sh`, `/etc/profile.d/rvm.sh`) to guarantee consistent environment loading across all shell sessions (login and non-login).
 
 ### Persistent Data Management
-The DevContainer ensures data persistence across container lifecycles (restarts and rebuilds) through bind mounts:
-- **Database Data**: PostgreSQL data is persisted in a dedicated local directory (`.DB_data/`).
+The DevContainer ensures data persistence across container lifecycles (restarts and rebuilds) through named Docker volumes and bind mounts:
+- **Database Data**: PostgreSQL data is persisted in the named Docker volume `postgres-data`, mounted at `/var/lib/postgresql-data`.
 - **Logs**: PostgreSQL logs are mounted to a local directory (`.DB_logs/`) for debugging and analysis.
 - **Backups**: A dedicated directory (`.DB_backups/`) is configured for PostgreSQL backup storage.
-- **Dependency Caching**: Ruby gems are cached locally (`.gems-cache/`) to significantly accelerate container rebuilds and dependency installations.
+- **Dependency Caching**: Ruby gems are cached in the named Docker volume `rvm-gems`, mounted at `/home/vscode/.rvm/gems`, to significantly accelerate container rebuilds and dependency installations.
 - **SSH Keys**: User SSH keys are mounted from the host for secure access to external services.
+
+### Container Storage
+
+What lives in a named Docker volume versus a bind mount to the repo:
+
+| Data | Storage | Mounted at (container) |
+|------|---------|-------------------------|
+| PostgreSQL data | named volume `postgres-data` | `/var/lib/postgresql-data` |
+| Ruby gems | named volume `rvm-gems` | `/home/vscode/.rvm/gems` |
+| PostgreSQL logs | bind mount `.DB_logs/` | `/var/log/postgresql` |
+| PostgreSQL backups | bind mount `.DB_backups/` | `/var/lib/postgresql-backup` |
+| Playwright cache | bind mount `.playwright-cache/` | `/home/vscode/.cache/ms-playwright` |
+
+PostgreSQL data and Ruby gems use named volumes rather than bind mounts for two reasons. This repo lives under `Library/Mobile Documents/com~apple~CloudDocs`, an iCloud Drive path that can evict files it has not synced, and PostgreSQL data files must not sit on a filesystem that can do that. A bind mount for gems also hides the image's own gem directory, which is how `rails` and `bundler` went missing from a running container even though both were installed at build time.
 
 ### Service Orchestration and Database Management
 The container integrates modular service management scripts for automated setup and maintenance:

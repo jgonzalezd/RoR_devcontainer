@@ -86,8 +86,9 @@ docker exec <container-name> sudo -u postgres psql -c "SELECT pg_size_pretty(pg_
 # 1. Check container logs
 docker logs <container-name>
 
-# 2. If data corruption is suspected, remove corrupted data
-rm -rf .DB_data/*
+# 2. If data corruption is suspected, empty the postgres-data volume
+# WARNING: this deletes the database. Container must be stopped first.
+docker run --rm -v postgres-data:/d alpine sh -c 'rm -rf /d/*'
 
 # 3. Restart container (will reinitialize automatically)
 docker restart <container-name>
@@ -138,10 +139,11 @@ docker exec -it <container-name> /usr/local/bin/devcontainer-scripts/services/ba
 
 | Path | Description |
 |------|-------------|
-| `.DB_data/` | PostgreSQL data directory (host) |
+| `postgres-data` (named Docker volume) | PostgreSQL data directory |
+| `rvm-gems` (named Docker volume) | Ruby gems directory |
 | `.DB_logs/` | PostgreSQL logs (host) |
 | `.DB_backups/` | Backup storage (host) |
-| `/var/lib/postgresql-data/` | PostgreSQL data directory (container) |
+| `/var/lib/postgresql-data/` | PostgreSQL data directory (container, backed by `postgres-data`) |
 | `/var/log/postgresql/` | PostgreSQL logs (container) |
 | `/var/lib/postgresql-backup/` | Backup storage (container) |
 
@@ -186,7 +188,7 @@ postgresql://dbuser:password@localhost:5432/
 
 1. **Always create backups before major operations**
 2. **Run health checks regularly**
-3. **Monitor disk usage in `.DB_data/`**
+3. **Monitor disk usage of the `postgres-data` volume** (`docker system df -v`)
 4. **Keep at least 3 recent backups**
 5. **Check logs when issues occur**
 6. **Use proper container shutdown (avoid force kill)**
@@ -199,10 +201,12 @@ postgresql://dbuser:password@localhost:5432/
 # Stop container
 docker stop <container-name>
 
-# Remove all data (WARNING: Data loss!)
-rm -rf .DB_data/* .DB_logs/* .DB_backups/*
+# Remove all data (WARNING: Data loss! Deletes the database, logs, and backups.)
+# Container must already be stopped (see above).
+docker volume rm postgres-data
+rm -rf .DB_logs/* .DB_backups/*
 
-# Start container (will reinitialize)
+# Start container (will reinitialize the postgres-data volume automatically)
 docker start <container-name>
 ```
 

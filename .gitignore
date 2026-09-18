@@ -89,9 +89,20 @@ debug/
 .dynamodb/
 .tern-port
 
-# Added to ignore temporary and cache directories to reduce Git active changes warning
-.DB_backups/
+# Runtime data and cache directories.
+# .DB_data is no longer bind-mounted; PostgreSQL data lives in the named Docker
+# volume "postgres-data". .gems-cache is likewise superseded by the named volume
+# "rvm-gems". Both are kept ignored so stale local copies do not enter git.
 .DB_data/
 .gems-cache/
+
+# These three ARE bind-mounted by .devcontainer/devcontainer.json, so their
+# directories must exist in a fresh clone. Ignore the contents, keep the .gitkeep.
+.DB_backups/*
+!.DB_backups/.gitkeep
+.DB_logs/*
+!.DB_logs/.gitkeep
+.playwright-cache/*
+!.playwright-cache/.gitkeep
 
 

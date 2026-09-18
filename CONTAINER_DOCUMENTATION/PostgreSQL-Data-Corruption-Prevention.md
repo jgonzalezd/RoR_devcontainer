@@ -165,15 +165,19 @@ backup-postgresql.sh help
 
 **Location**: `.devcontainer/devcontainer.json`
 
-**Key Mounts**:
+**Key Mounts** (as of the current `.devcontainer/devcontainer.json`):
 ```json
 {
   "mounts": [
     {
-      "source": "${localWorkspaceFolder}/.DB_data",
+      "source": "rvm-gems",
+      "target": "/home/vscode/.rvm/gems",
+      "type": "volume"
+    },
+    {
+      "source": "postgres-data",
       "target": "/var/lib/postgresql-data",
-      "type": "bind",
-      "consistency": "delegated"
+      "type": "volume"
     },
     {
       "source": "${localWorkspaceFolder}/.DB_logs",
@@ -192,8 +196,10 @@ backup-postgresql.sh help
 }
 ```
 
+PostgreSQL data uses the named Docker volume `postgres-data`, not a bind mount. An earlier version of this file bind-mounted `.DB_data/` to the same target, but Docker keeps only one mount per destination and silently used the volume. The dead bind entry has been removed from `devcontainer.json`. Ruby gems use the named Docker volume `rvm-gems` for the same reason: this repo is under iCloud Drive, and a bind mount also hid the image's pre-installed gems.
+
 **Benefits**:
-- Data persists across container restarts
+- Data persists across container restarts, on a volume Docker itself manages instead of an iCloud-synced host directory
 - Logs available for debugging
 - Backups stored safely on host
 - Proper shutdown handling prevents corruption
@@ -326,7 +332,8 @@ docker logs ruby-rails-dev-final
 - Configuration file syntax errors
 
 **Resolution**:
-1. Remove corrupted data: `rm -rf .DB_data/*`
+1. Stop the container, then empty the `postgres-data` volume (WARNING: deletes the database):
+   `docker run --rm -v postgres-data:/d alpine sh -c 'rm -rf /d/*'`
 2. Restart container (will reinitialize)
 
 #### Backups Not Being Created
@@ -426,7 +433,7 @@ The health check monitors:
 
 ### 4. Data Persistence
 
-- Never delete `.DB_data/` while container is running
+- Never remove or empty the `postgres-data` volume while the container is running
 - Keep `.DB_backups/` directory backed up
 - Monitor `.DB_logs/` for issues
 - Use proper mount configurations
@@ -446,13 +453,16 @@ The health check monitors:
 ├── devcontainer.json             # Container configuration
 └── Dockerfile                     # Container image definition
 
-Host Directories (mounted):
-├── .DB_data/                      # PostgreSQL data (persistent)
+Host Directories (bind-mounted):
 ├── .DB_logs/                      # PostgreSQL logs (persistent)
 └── .DB_backups/                   # Backup storage (persistent)
 
+Named Docker Volumes (not on the host filesystem):
+├── postgres-data                  # PostgreSQL data (persistent)
+└── rvm-gems                       # Ruby gems (persistent)
+
 Container Directories:
-├── /var/lib/postgresql-data/      # Mounted from .DB_data/
+├── /var/lib/postgresql-data/      # Backed by the postgres-data volume
 ├── /var/log/postgresql/           # Mounted from .DB_logs/
 ├── /var/lib/postgresql-backup/    # Mounted from .DB_backups/
 └── /usr/local/bin/devcontainer-scripts/

@@ -10,8 +10,10 @@
 			"DATABASE_PASSWORD": "password"
 		}
 	},
-
 	// Configure tool-specific properties.
+	"runArgs": [
+		"--network=host"
+	],
 	"customizations": {
 		// Configure properties specific to VS Code.
 		"vscode": {
@@ -21,7 +23,9 @@
 				"terminal.integrated.profiles.linux": {
 					"bash": {
 						"path": "/bin/bash",
-						"args": ["-l"]
+						"args": [
+							"-l"
+						]
 					}
 				},
 				"ruby.codeCompletion": "rcodetools",
@@ -31,43 +35,25 @@
 				"files.associations": {
 					"*.html.erb": "erb"
 				}
-			},
-			
-			// Add the IDs of extensions you want installed when the container is created.
-			// TEMPORARILY REDUCED for debugging - keeping only essential ones
-			"extensions": [
-				// "rebornix.Ruby",
-				// "wingrunr21.vscode-ruby",
-				// "Shopify.ruby-lsp",  // Keep one Ruby extension
-				// "octref.vetur",
-				// "Vue.volar",  // Keep one Vue extension
-				// "Vue.vscode-typescript-vue-plugin",
-				// "ms-vscode.vscode-typescript-next",
-				// "esbenp.prettier-vscode"
-				// "formulahendry.auto-rename-tag",
-				// "ms-vscode.vscode-json",
-				// "redhat.vscode-yaml",
-				// "ms-vscode.vscode-postgresql",
-				// "Anthropic.claude-code"  // Heavy extension - disabled temporarily
-			]
+			}
 		}
 	},
-
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	"forwardPorts": [3000, 3001, 5432, 8080, 5173],
-
+	"forwardPorts": [
+		3000,
+		3001,
+		5432,
+		8080,
+		5173
+	],
 	// Use 'postCreateCommand' to run once after container creation
 	"postCreateCommand": "./.devcontainer/postCreateCommand.sh",
-
 	// Use 'postStartCommand' to run after every container start
 	"postStartCommand": "./.devcontainer/postStartCommand.sh",
-
 	// Install Claude Code and MCPs after container starts
 	"postAttachCommand": "./.devcontainer/postAttachCommand.sh",
-
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode",
-
 	// Set environment variables
 	"remoteEnv": {
 		"DISABLED_SERVICES": "mongodb",
@@ -77,18 +63,14 @@
 		"DATABASE_URL": "${containerEnv:DATABASE_URL}",
 		"POSTGRES_VERSION": "15"
 	},
-
 	// Mount the workspace folder
+	// These two keys must stay in step with the Dockerfile's WORKDIR /workspace.
+	// Dockerfile writes /workspace/.rvmrc, so the workspace must land at /workspace, not the
+	// devcontainer CLI default of /workspaces/<repo-name>.
 	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
 	"workspaceFolder": "/workspace",
-
 	// Mount configurations with proper permissions
 	"mounts": [
-		{
-			"source": "${localEnv:HOME}/.tz", // This is a placeholder; actually use the system timezone
-			"target": "/etc/localtime",
-			"type": "bind"
-		},
 		// SSH keys for git operations
 		{
 			"source": "${localEnv:HOME}${localEnv:USERPROFILE}/.ssh",
@@ -96,19 +78,26 @@
 			"type": "bind",
 			"consistency": "cached"
 		},
-		// Ruby gems cache for faster rebuilds
+		// Ruby gems: named volume, not a bind mount. A named volume is seeded from the
+		// image's own contents at this path on first use, so the build-time
+		// `gem install bundler:2.3.26 rails` survives. A bind mount here hides the
+		// image's gem tree with whatever is on the host, which is how `rails` and
+		// `bundler` ended up missing from the running container. This also keeps a
+		// large gem tree off iCloud Drive: this repo lives under
+		// Library/Mobile Documents/com~apple~CloudDocs, where iCloud can evict files
+		// and slow down disk I/O.
 		{
-			"source": "${localWorkspaceFolder}/.gems-cache",
+			"source": "rvm-gems",
 			"target": "/home/vscode/.rvm/gems",
-			"type": "bind",
-			"consistency": "delegated"
+			"type": "volume"
 		},
-		// PostgreSQL data persistence - CRITICAL for data retention
+		// PostgreSQL data lives in the named Docker volume "postgres-data" below.
+		// A bind mount into iCloud Drive was removed here: Postgres data files must
+		// not sit on a sync-and-evict filesystem.
 		{
-			"source": "${localWorkspaceFolder}/.DB_data",
+			"source": "postgres-data",
 			"target": "/var/lib/postgresql-data",
-			"type": "bind",
-			"consistency": "delegated"
+			"type": "volume"
 		},
 		// PostgreSQL logs for debugging (optional but recommended)
 		{
@@ -123,21 +112,24 @@
 			"target": "/var/lib/postgresql-backup",
 			"type": "bind",
 			"consistency": "delegated"
+		},
+		// Playwright browser cache for persistent browsers across rebuilds
+		{
+			"source": "${localWorkspaceFolder}/.playwright-cache",
+			"target": "/home/vscode/.cache/ms-playwright",
+			"type": "bind",
+			"consistency": "delegated"
 		}
 	],
-
-
 	// Lifecycle scripts for proper shutdown and cleanup
 	"shutdownAction": "stopContainer",
 	"waitFor": "postCreateCommand",
-
 	// // Container capabilities
 	// "capAdd": ["SYS_PTRACE"],
 	// "securityOpt": ["seccomp=unconfined"],
-
 	// Run init process to properly handle signals
-	"init": true,
-	
+	// DISABLED: Conflicts with custom ENTRYPOINT causing "broken pipe" errors
+	// "init": true,
 	// Allow Dockerfile ENTRYPOINT to run (starts PostgreSQL)
 	"overrideCommand": false
 }

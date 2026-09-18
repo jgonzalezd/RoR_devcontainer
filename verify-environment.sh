@@ -1,13 +1,27 @@
 #!/bin/bash
+set -o pipefail
 
 echo "🔍 Verifying Rails + Vue.js Development Environment"
 echo "================================================="
 
+# Runs a version command and prints a check mark on success or a cross mark
+# on failure. Never exits the script; a missing tool is reported, not fatal.
+check_tool() {
+  local name="$1"
+  shift
+  local version_output
+  if version_output="$("$@" 2>/dev/null)"; then
+    echo "✅ $name: $version_output"
+  else
+    echo "❌ $name: not found"
+  fi
+}
+
 echo ""
-echo "✅ Ruby: $(ruby --version)"
-echo "✅ Rails: $(rails --version)"
-echo "✅ Node.js: $(node --version)"
-echo "✅ Vue CLI: $(vue --version)"
+check_tool "Ruby" ruby --version
+check_tool "Rails" rails --version
+check_tool "Node.js" node --version
+check_tool "Vue CLI" vue --version
 
 echo ""
 echo "🗃️  PostgreSQL Configuration:"
@@ -31,12 +45,15 @@ if pg_isready -h localhost -p 5432 >/dev/null 2>&1; then
     echo "✅ PostgreSQL: Ready for connections"
     echo "   Authentication: Trust-based (no password required)"
     echo "   User: $DB_USER"
-    
-    # Check if user database exists, create if not
+
+    # Check if user database exists, create if not.
+    # NOTE: this is a side effect in a script named "verify" — it can create
+    # a database, not just report on one. See the report handed back with
+    # these changes for the open question on whether that belongs here.
     if PGPASSWORD="${DATABASE_PASSWORD:-password}" psql -h localhost -U "$DB_USER" -lqt 2>/dev/null | cut -d \| -f 1 | grep -qw "$DB_USER"; then
         echo "   Database: $DB_USER (available)"
     else
-        echo "   Database: Creating $DB_USER database..."
+        echo "   Database: $DB_USER does not exist — creating it now..."
         if PGPASSWORD="${DATABASE_PASSWORD:-password}" createdb -h localhost -U "$DB_USER" "$DB_USER" 2>/dev/null; then
             echo "   Database: $DB_USER (created)"
         else
@@ -67,4 +84,4 @@ echo "   - Database User: $DB_USER (superuser)"
 echo "   - Default Database: $DB_USER"
 
 echo ""
-echo "✅ Environment verification complete!" 
+echo "✅ Environment verification complete!"
