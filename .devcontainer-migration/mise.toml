@@ -1,0 +1,24 @@
+# mise.toml — single declared source of truth for the Ruby and Node versions
+# this workspace runs on. mise (https://mise.jdx.dev) reads this file and
+# installs/activates the pinned tools.
+#
+# Versions below are pinned to match .devcontainer/devcontainer.json's build
+# args (RUBY_VERSION, NODE_VERSION), so mise and the container image agree.
+# .devcontainer/lib/check-versions.sh checks that agreement against the
+# actually-running toolchain, not against another config file.
+
+[tools]
+ruby = "3.3.7"
+node = "22"
+
+[settings]
+# Without idiomatic_version_file_enable_tools under [settings], mise ignores
+# per-project .ruby-version / .node-version / .nvmrc files entirely. With it,
+# mise reads those files too and lets them override this file's pins on a
+# per-directory basis.
+#
+# Those per-project version files are kept deliberately, not as leftover
+# clutter: tools outside this container (rbenv, rvm, nvm, editor plugins,
+# CI jobs that don't run mise) read .ruby-version/.node-version/.nvmrc
+# directly and have no way to read mise.toml.
+idiomatic_version_file_enable_tools = ["ruby", "node"]

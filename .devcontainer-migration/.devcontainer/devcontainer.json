@@ -1,0 +1,76 @@
+{
+	"name": "Ruby on Rails with Vue.js + PostgreSQL (Persistent)",
+	// Compose-based setup: Postgres runs as its own service (see
+	// compose.yaml) instead of inside this container. `build`, `runArgs`,
+	// `workspaceMount` and `mounts` are Docker-image-target keys that do not
+	// apply under Compose; their equivalents now live in compose.yaml.
+	"dockerComposeFile": "compose.yaml",
+	"service": "app",
+	"workspaceFolder": "/workspace",
+	"shutdownAction": "stopCompose",
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"terminal.integrated.profiles.linux": {
+					"bash": {
+						"path": "/bin/bash",
+						"args": [
+							"-l"
+						]
+					}
+				},
+				"ruby.codeCompletion": "rcodetools",
+				"ruby.intellisense": "rubyLocate",
+				"ruby.useBundler": true,
+				"ruby.useLanguageServer": true,
+				"files.associations": {
+					"*.html.erb": "erb"
+				}
+			}
+		}
+	},
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [
+		3000,
+		3001,
+		5432,
+		8080,
+		5173
+	],
+	// Use 'postCreateCommand' to run once after container creation
+	"postCreateCommand": "./.devcontainer/postCreateCommand.sh",
+	// Use 'postStartCommand' to run after every container start
+	"postStartCommand": "./.devcontainer/postStartCommand.sh",
+	// Install Claude Code and MCPs after container starts
+	"postAttachCommand": "./.devcontainer/postAttachCommand.sh",
+	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode",
+	// Set environment variables
+	"remoteEnv": {
+		// Shims on PATH, not `mise activate`: a shim is a plain executable, so it
+		// works anywhere nothing sources a shell file — `bash -c`, a VS Code
+		// task, a language server spawning a process, `docker exec`. `mise
+		// activate` only takes effect in an interactive shell that sources it.
+		"PATH": "/home/vscode/.local/share/mise/shims:${containerEnv:PATH}",
+		"BUNDLE_PATH": "/home/vscode/.bundle-gems",
+		// mise will not read a project config it has not trusted, and `mise trust`
+		// stores that trust in ~/.local/state/mise, which is not a named volume.
+		// Without this, recreating the container breaks every mise shim.
+		"MISE_TRUSTED_CONFIG_PATHS": "/workspace",
+		// Rails 7.2 binds to localhost in development, which is unreachable from
+		// macOS now that --network=host is gone. railties reads ENV["BINDING"]
+		// before applying that default, so this covers every project at once.
+		"BINDING": "0.0.0.0"
+	},
+	// Lifecycle scripts for proper shutdown and cleanup
+	"waitFor": "postCreateCommand"
+	// // Container capabilities
+	// "capAdd": ["SYS_PTRACE"],
+	// "securityOpt": ["seccomp=unconfined"],
+	// Run init process to properly handle signals
+	// DISABLED: Conflicts with custom ENTRYPOINT causing "broken pipe" errors
+	// "init": true,
+}

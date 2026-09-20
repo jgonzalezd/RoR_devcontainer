@@ -1,0 +1,3 @@
+# Placeholder so this directory exists in a fresh clone.
+# devcontainer.json bind-mounts it into the container; a missing source
+# directory makes Docker create it, with ownership that is not guaranteed.

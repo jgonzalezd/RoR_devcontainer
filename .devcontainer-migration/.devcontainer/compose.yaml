@@ -1,0 +1,103 @@
+# .devcontainer/compose.yaml
+#
+# Two services: `app` (the Rails/Vue dev container, built from the existing
+# Dockerfile) and `db` (the official postgres:15 image, its own container).
+#
+# Compose auto-loads a file named `.env` sitting beside this compose.yaml —
+# the project directory Compose derives from `-f .devcontainer/compose.yaml`
+# is `.devcontainer/`, and that is exactly where `.devcontainer/.env` lives.
+# No `env_file:` entry is needed for that; the ${VAR} interpolation below is
+# resolved from it automatically. Verified with `docker compose config`
+# (see the report handed back with this change).
+#
+# Compose's default bridge network gives service-name DNS between `app` and
+# `db` with no `networks:` section needed here — `psql -h db` resolves from
+# `app` on that default network. Do not add `network_mode: host`: it would
+# remove that DNS resolution, which is the whole reason `db` is reachable by
+# name in the first place.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        POSTGRES_VERSION: ${POSTGRES_VERSION}
+        DATABASE_USERNAME: ${DATABASE_USERNAME}
+        DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    command: sleep infinity
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Points at the `db` service by its Compose service name, not
+      # localhost: Postgres no longer runs inside this container.
+      DATABASE_URL: "postgresql://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@db:5432/${DATABASE_USERNAME}"
+      POSTGRES_HOST: db
+      # mise refuses to read a project config it has not trusted, and `mise
+      # trust` records that trust in ~/.local/state/mise, which is NOT one of
+      # the named volumes. Recreating the container therefore loses the trust
+      # and every mise shim starts failing with "error parsing config file".
+      # This variable grants the trust declaratively, so it survives recreation.
+      MISE_TRUSTED_CONFIG_PATHS: /workspace
+      # Rails 7.2 binds `rails server` to localhost in development
+      # (railties server_command.rb:221). Under the old --network=host that
+      # was still reachable from macOS. Under Compose bridge networking it is
+      # not. Line 223 of the same file reads ENV["BINDING"] first, so this one
+      # variable fixes every project without editing any Procfile.dev.
+      BINDING: 0.0.0.0
+    volumes:
+      # Workspace bind mount. Matches the Dockerfile's WORKDIR /workspace,
+      # so lifecycle scripts and root.code-workspace that hardcode that path
+      # keep working.
+      - ..:/workspace:cached
+      # SSH keys for git operations.
+      - ${HOME}/.ssh:/home/vscode/.ssh:cached
+      # mise's own data (installed Ruby/Node toolchains, shims) and the
+      # app's bundled gems: named volumes, not bind mounts, seeded from the
+      # image's own contents at these paths on first use. See the fuller
+      # rationale in the devcontainer.json history this replaces.
+      - mise-data:/home/vscode/.local/share/mise
+      - bundle-gems:/home/vscode/.bundle-gems
+      # Playwright browser cache for persistent browsers across rebuilds.
+      - ../.playwright-cache:/home/vscode/.cache/ms-playwright:delegated
+      # Target for pg-backup.sh's logical dumps. A named volume, deliberately
+      # NOT the repo's .DB_backups/ directory: that path is under
+      # Library/Mobile Documents/com~apple~CloudDocs, and iCloud evicts files
+      # it has not synced. The old startup path wrote two 38 MB raw cluster
+      # copies there today, which is the defect this migration removes.
+      - pg-dumps:/var/lib/postgresql-dumps
+
+  db:
+    image: postgres:${POSTGRES_VERSION}
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      # No POSTGRES_DB var exists in .devcontainer/.env. This repo's own
+      # convention (see verify-environment.sh's "Default Database: $DB_USER")
+      # is a database named after the app user, so that convention is
+      # reused here rather than inventing a new database name.
+      POSTGRES_DB: ${DATABASE_USERNAME}
+    volumes:
+      # New volume, deliberately not the old `postgres-data`: postgres:15 on
+      # Debian trixie runs as uid 999 against glibc 2.41, while the existing
+      # `postgres-data` volume was written by Ubuntu's PGDG cluster as uid
+      # 101 on glibc 2.35. Mounting the old volume here would hand a
+      # mismatched-uid, mismatched-glibc data directory to a fresh `initdb`.
+      - postgres-data-v2:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_USERNAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      # Exposes 5432 on macOS. `forwardPorts` in devcontainer.json only
+      # reaches the `service` container (`app`), so `db` needs its own
+      # `ports:` entry to be reachable at localhost:5432 from the host.
+      - "5432:5432"
+
+volumes:
+  mise-data:
+  bundle-gems:
+  postgres-data-v2:
+  pg-dumps:

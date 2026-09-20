@@ -1,0 +1,59 @@
+# AI Search Ignore File
+# Similar to .gitignore but for AI assistants and code search tools
+# This helps focus AI attention on relevant project files only
+
+# ===========================================
+# PROJECT SCOPE - Easy to swap active/inactive
+# ===========================================
+
+# INACTIVE PROJECTS (add # to make active, remove # to make inactive)
+quick_wins_vAPI/
+quick_wins
+interview_scheduler
+template
+# secure_notes/
+
+# ===========================================
+# COMMON EXCLUDES - Dependencies & Generated
+# ===========================================
+*/node_modules/
+*/tmp/
+*/log/
+*/storage/
+*/vendor/bundle/
+*/.git/
+
+# Build artifacts (excluded from general searches, but can be examined explicitly for debugging)
+*/app/assets/builds/
+*/dist/
+*/build/
+*/public/assets/
+
+# ===========================================
+# LOG & CACHE FILES
+# ===========================================
+*.log
+*/coverage/
+*/.nyc_output/
+*/.cache/
+*/.rspec_status
+
+# ===========================================
+# OS & EDITOR FILES
+# ===========================================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ===========================================
+# USAGE NOTES
+# ===========================================
+# To switch active project:
+# 1. Add # before current active project to make it inactive
+# 2. Remove # from desired project to make it active
+# 
+# Example: To switch from quick_wins to quick_wins_vAPI:
+# quick_wins_vAPI/     →     # quick_wins_vAPI/
+# # quick_wins/       →     quick_wins/ 
