@@ -87,7 +87,7 @@
 		// Library/Mobile Documents/com~apple~CloudDocs, where iCloud can evict files
 		// and slow down disk I/O.
 		{
-			"source": "rvm-gems-v2",
+			"source": "rvm-gems",
 			"target": "/home/vscode/.rvm/gems",
 			"type": "volume"
 		},
