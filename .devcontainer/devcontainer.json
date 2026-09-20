@@ -63,12 +63,8 @@
 		"DATABASE_URL": "${containerEnv:DATABASE_URL}",
 		"POSTGRES_VERSION": "15"
 	},
-	// Mount the workspace folder
-	// These two keys must stay in step with the Dockerfile's WORKDIR /workspace.
-	// Dockerfile writes /workspace/.rvmrc, so the workspace must land at /workspace, not the
-	// devcontainer CLI default of /workspaces/<repo-name>.
-	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
-	"workspaceFolder": "/workspace",
+	// Use the devcontainers default workspace location: /workspaces/<repo-name>.
+	// This avoids host/remote workspace path mismatch prompts in VS Code/Cursor.
 	// Mount configurations with proper permissions
 	"mounts": [
 		// SSH keys for git operations
