@@ -1,0 +1,12 @@
+require 'rake'
+require 'sinatra/activerecord/rake'
+
+namespace :app do
+  desc 'Run all tests'
+  task :test do
+    Dir.glob('test/**/*_test.rb').sort.each do |file|
+      puts "Running #{file}..."
+      require_relative file
+    end
+  end
+end

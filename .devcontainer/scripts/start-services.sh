@@ -36,3 +36,5 @@ else
     # Continue with the provided command
     exec "$@"
 fi
+
+
