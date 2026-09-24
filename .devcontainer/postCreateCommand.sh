@@ -31,6 +31,10 @@ check_tool "Vue CLI" vue --version
 check_tool "Claude Code" claude --version
 check_tool "Pi" pi --version
 
+# Register the Pi safety guards (confirm-before-destroy + auto checkpoints) in user settings.
+# Lives outside the repo (~/.pi/agent), so it must be re-applied on every container rebuild.
+node "$(dirname "$0")/../.pi/guards/install.mjs" || echo "⚠️  Could not register Pi safety guards"
+
 echo ""
 if [ "${#MISSING_TOOLS[@]}" -gt 0 ]; then
   echo "⚠️  Missing tools: ${MISSING_TOOLS[*]}"

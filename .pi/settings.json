@@ -1,4 +1,9 @@
 {
   "defaultProvider": "openrouter",
-  "defaultModel": "moonshotai/kimi-k2.6"
+  "defaultModel": "moonshotai/kimi-k2.6",
+  "defaultThinkingLevel": "high",
+  "defaultTools": ["read", "bash", "edit", "write", "grep", "find", "ls"],
+  "packages": [
+    "npm:pi-web-access"
+  ]
 }

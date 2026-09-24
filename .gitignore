@@ -106,3 +106,7 @@ debug/
 !.playwright-cache/.gitkeep
 
 
+
+# Pi agent: installed packages and local backups
+.pi/npm/
+.pi/backups/
