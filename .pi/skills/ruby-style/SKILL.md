@@ -1,18 +1,28 @@
 ---
 name: ruby-style
-description: Ruby/Rails code style and linting with RuboCop, scoped to changed files. Use when cleaning up code, before handing off a change, or when the user asks about lint/style.
+description: Ruby/Rails style and linting workflow with RuboCop. Use before handoff and when cleaning changed files.
 ---
 
 # Ruby style
 
-1. Look for `.rubocop.yml` (often `rubocop-rails-omakase` on Rails 8). The project config wins over personal taste.
-2. Lint **only files you changed**:
-   ```bash
-   git diff --name-only --diff-filter=AM HEAD -- '*.rb' '*.rake' | xargs -r bin/rubocop -a
-   git ls-files --others --exclude-standard -- '*.rb' | xargs -r bin/rubocop -a
-   ```
-   Use `-a` (safe autocorrect). Never run `-A` or lint the whole repo unless asked, because it creates noisy diffs.
-3. If there's no `bin/rubocop`, try `bundle exec rubocop`. If the project doesn't use rubocop, match the surrounding style and don't add rubocop.
-4. Style fixes to code you didn't touch go in a **separate** change. Don't mix them into feature diffs.
+## Workflow
 
-Idioms: guard clauses over nested `if`, `presence`, `find_by` over `where.first`, `exists?` over `present?` on relations, `pluck` for column lists, `each` over `for`, keyword args for 3+ params, and no `rescue Exception`.
+1. Honor project style config (`.rubocop.yml`) over personal preference.
+2. Lint changed files only, using safe autocorrect (`-a`).
+3. Avoid repo-wide style churn unless explicitly requested.
+
+## Commands
+
+Prefer commands from `.pi/project-profile.md`. Typical fallback:
+
+```bash
+git diff --name-only --diff-filter=AM HEAD -- '*.rb' '*.rake' | xargs -r bin/rubocop -a
+git ls-files --others --exclude-standard -- '*.rb' | xargs -r bin/rubocop -a
+```
+
+If `bin/rubocop` is unavailable, try `bundle exec rubocop`.
+
+## Rules
+
+- Never use unsafe autocorrect (`-A`) across the whole repo without explicit request.
+- Keep unrelated style changes out of feature diffs.

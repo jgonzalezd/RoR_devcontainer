@@ -1,29 +1,33 @@
 ---
 name: rails-debugging
-description: Systematic debugging of Rails apps — failing tests, 500 errors, wrong data, slow queries. Use when something is broken or behaves unexpectedly in a Rails/Ruby project.
+description: Systematic debugging for Rails issues (failing tests, 500s, wrong data, slow queries). Use when behavior is broken or unexpected.
 ---
 
-# Debugging Rails
+# Rails debugging
 
-## Loop: reproduce → isolate → hypothesise → verify → fix (with a test)
-1. **Reproduce** with the smallest command: a single test (`bin/rails test file:line`), a `curl` against a running server, or `bin/rails runner`.
-2. **Read the whole backtrace.** Find the first frame in `app/` or `lib/`. Frames in gems are rarely the cause.
-3. **Look at the logs:** `tail -n 200 log/test.log` or `log/development.log`. They show params, the SQL that ran, and rollbacks.
-4. **Inspect state safely**
-   - `bin/rails console --sandbox` rolls everything back on exit.
-   - `bin/rails runner 'p User.find_by(email: "x").errors.full_messages'` (read-only expressions)
-   - `bin/rails routes -g users` and `bin/rails db:migrate:status`
-5. **Hypothesise one cause at a time.** Add temporary `Rails.logger.debug` or `pp` lines and remove them afterwards.
-6. **Fix with a regression test** that fails before the fix and passes after (see skill `rails-tdd`).
+> Run commands from `.pi/project-profile.md` where listed; the examples below
+> are Rails defaults.
+
+Loop: reproduce -> isolate -> hypothesize -> verify -> fix with a regression test.
+
+## Steps
+
+1. Reproduce with the smallest command (single test, focused request, or runner script).
+2. Read full backtrace; find first frame in `app/` or `lib/`.
+3. Check logs (`log/test.log` / `log/development.log`) for params, SQL, rollbacks.
+4. Inspect state safely (`bin/rails console --sandbox`).
+5. Test one hypothesis at a time; remove temporary debug output afterwards.
+6. Add a regression test via `rails-tdd`.
 
 ## Common culprits
-- `ActiveRecord::PendingMigrationError` → `bin/rails db:test:prepare`
-- Validation silently failing → `save` returned false. Check `record.errors` or use `save!` in tests.
-- Strong params dropping a field → `Unpermitted parameter` in the log
-- N+1 / slow pages → repeated SQL lines in the log. Use `includes`/`preload`, and add `bullet` if the project has it.
-- Zeitwerk `NameError` → file path and constant name mismatch. Run `bin/rails zeitwerk:check`.
-- Assets/JS not updating → `bin/dev` not running, or a stale `app/assets/builds`
 
-## Don't
-- Don't "fix" by deleting data, resetting the DB or clearing caches with destructive commands.
-- Don't mutate data in console without `--sandbox` unless the user asks.
+- Pending migrations -> `bin/rails db:test:prepare`
+- Silent validation failure (`save` false) -> inspect `errors`
+- Strong params filtering attributes
+- N+1 query patterns -> add `includes`/`preload`
+- Zeitwerk constant/file mismatch -> `bin/rails zeitwerk:check`
+
+## Rules
+
+- No destructive DB commands unless explicitly requested.
+- Prefer evidence from logs/tests over intuition.
