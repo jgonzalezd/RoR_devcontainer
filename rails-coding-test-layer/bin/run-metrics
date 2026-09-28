@@ -1,0 +1,114 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Timing report for one pi planning/build session, for the iteration-log row.
+#
+#   bin/run-metrics <session.jsonl> [--afk-min N]
+#
+# One row per user turn. "Human" is the gap between the agent's last output and your next
+# message; a gap over --afk-min (default 5) minutes is flagged AFK? and capped at that value
+# in the "adjusted" total, so distractions don't hide real waste. "Model" is the time from
+# your message to the agent's last output in that turn. Empty responses are assistant
+# messages with no content (free-tier stalls, upstream timeouts).
+
+require "json"
+require "time"
+
+path = ARGV.find { |a| !a.start_with?("--") } or abort "usage: bin/run-metrics <session.jsonl> [--afk-min N]"
+afk_min = (ARGV[ARGV.index("--afk-min") + 1] if ARGV.include?("--afk-min")).to_f
+afk_min = 5.0 if afk_min <= 0
+afk_s = afk_min * 60
+
+entries = File.readlines(path).map { |l| JSON.parse(l) }
+ts = ->(e) { Time.parse(e["timestamp"]) }
+fmt = lambda do |s|
+  s = s.round
+  s >= 60 ? format("%dm%02ds", s / 60, s % 60) : "#{s}s"
+end
+
+turns = []
+model = nil
+entries.each do |e|
+  case e["type"]
+  when "model_change"
+    model = e["modelId"]
+    turns.last[:models] << model if turns.last
+  when "message"
+    m = e["message"]
+    case m["role"]
+    when "user"
+      text = Array(m["content"]).filter_map { |c| c["text"] if c.is_a?(Hash) }.join(" ")
+      turns << { user_at: ts[e], text: text.gsub(/\s+/, " ").strip, models: [model].compact,
+                 last_at: ts[e], first_reply_at: nil, calls: 0, rounds: 0, empty: 0,
+                 errors: [], writes: [], tokens_in: 0, tokens_out: 0, cost: 0.0 }
+    when "assistant", "toolResult"
+      t = turns.last or next
+      t[:last_at] = ts[e]
+      next unless m["role"] == "assistant"
+
+      t[:rounds] += 1
+      t[:first_reply_at] ||= ts[e]
+      content = Array(m["content"])
+      u = m["usage"] || {}
+      t[:tokens_in] += u["input"].to_i + u["cacheRead"].to_i
+      t[:tokens_out] += u["output"].to_i
+      t[:cost] += u.dig("cost", "total").to_f
+      if content.none? { |c| %w[text toolCall].include?(c["type"]) }
+        t[:empty] += 1
+        t[:errors] << m["errorMessage"] if m["errorMessage"]
+      end
+      content.select { |c| c["type"] == "toolCall" }.each do |c|
+        t[:calls] += 1
+        p = c.dig("arguments", "path") || c.dig("arguments", "file_path")
+        t[:writes] << File.basename(p) if %w[write edit].include?(c["name"]) && p
+      end
+      t[:models] << m["model"] if m["model"] && t[:models].last != m["model"]
+    end
+  end
+end
+abort "no user turns in #{path}" if turns.empty?
+
+session_start = ts[entries.first]
+rows = []
+prev_end = session_start
+turns.each_with_index do |t, i|
+  human = t[:user_at] - prev_end
+  model_s = t[:last_at] - t[:user_at]
+  first = t[:first_reply_at] ? t[:first_reply_at] - t[:user_at] : nil
+  rows << t.merge(n: i + 1, human: human, afk: i.positive? && human > afk_s, model_s: model_s, first: first)
+  prev_end = t[:last_at]
+end
+
+puts "# run-metrics: #{File.basename(path)}"
+puts
+puts "| # | You said | Human | AFK? | Model | 1st reply | Rounds | Tool calls | Empty | Writes | Model(s) |"
+puts "|---|---|---|---|---|---|---|---|---|---|---|"
+rows.each do |r|
+  said = r[:text][0, 50].gsub("|", "\\|")
+  said += "…" if r[:text].size > 50
+  puts "| #{r[:n]} | #{said} | #{fmt[r[:human]]} | #{r[:afk] ? 'AFK?' : ''} | #{fmt[r[:model_s]]} | " \
+       "#{r[:first] ? fmt[r[:first]] : '-'} | #{r[:rounds]} | #{r[:calls]} | #{r[:empty].positive? ? r[:empty] : ''} | " \
+       "#{r[:writes].uniq.join(', ')} | #{r[:models].uniq.map { |x| x.split('/').last }.join(' → ')} |"
+end
+
+wall = rows.last[:last_at] - session_start
+human = rows.sum { |r| r[:human] }
+human_adj = rows.sum { |r| r[:afk] ? afk_s : r[:human] }
+model_total = rows.sum { |r| r[:model_s] }
+stall = rows.sum { |r| r[:empty].positive? ? r[:model_s] : 0 }
+errors = rows.flat_map { |r| r[:errors] }.tally
+
+puts
+puts "| Metric | Value |"
+puts "|---|---|"
+puts "| Wall time | #{fmt[wall]} |"
+puts "| Human time (raw) | #{fmt[human]} |"
+puts "| Human time (AFK gaps capped at #{afk_min.to_i}m) | #{fmt[human_adj]} |"
+puts "| Model time | #{fmt[model_total]} |"
+puts "| Model time in turns with empty responses | #{fmt[stall]} |"
+puts "| Adjusted wall (raw − AFK excess) | #{fmt[wall - (human - human_adj)]} |"
+puts "| User turns (round trips) | #{rows.size} |"
+puts "| Assistant rounds / tool calls | #{rows.sum { |r| r[:rounds] }} / #{rows.sum { |r| r[:calls] }} |"
+puts "| Empty responses | #{rows.sum { |r| r[:empty] }}#{errors.empty? ? '' : " (#{errors.map { |k, v| "#{v}× #{k}" }.join('; ')})"} |"
+puts "| Tokens in / out | #{rows.sum { |r| r[:tokens_in] }} / #{rows.sum { |r| r[:tokens_out] }} |"
+puts "| Cost | $#{format('%.4f', rows.sum { |r| r[:cost] })} |"

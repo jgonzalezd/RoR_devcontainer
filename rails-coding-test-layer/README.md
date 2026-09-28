@@ -1,0 +1,60 @@
+# Rails coding-test layer
+
+A lightweight layer on top of the `rails-agent-boilerplate` workflow for a 20–30 minute live
+feature-implementation exercise. It **does not modify the workflow**: same skills, same order,
+same gates. It only caps how much each stage produces, measured in counts (rounds, questions,
+stories, tickets, tests), never in minutes.
+
+```
+grill-with-docs → to-spec → to-tickets → commit plan (opens feature/<slug>) → ralph/once.sh → code-review → PR
+```
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `fast-track-prompt.md` | The prompt to paste. Contains only the prompt text, so it copies cleanly. |
+| `prep-checklist.md` | What to do before the interview so no setup happens live. |
+| `scenarios.md` | Practice briefs with the trap each grill should surface. |
+| `iteration-log.md` | One row per practice run; the evidence for changing the prompt. |
+| `recon.sh` | `recon.sh <project>`: read-only, ~0.1 s. Stack verdict from usage (file:line evidence) + implication, auth, schema, routes, models, controllers, test prior art, workflow files. The grill's one recon call. |
+| `bin/run-metrics` | `bin/run-metrics <pi session.jsonl>`: per-turn human/model time, AFK? flags, stalls, round trips. Fills the log's timing columns. |
+| `audits/` | Audit decision logs; each one names the prompt version it drives. |
+
+## How to run it
+
+0. **Model (pinned):** plan and build with a paid flash model, never a `:free` one (free tiers
+   queue and return empty responses: the v2 baseline lost ~5 min to stalls and a model swap):
+   `pi --provider openrouter --model google/gemini-3.8-flash`. For `coarse` tickets, use a
+   high-reasoning model for the build instead. Record the model in the log's Notes.
+1. **Session 1 (planning):** paste `fast-track-prompt.md`, then give the project and the brief.
+   The prompt makes the agent read each skill itself and run `recon.sh` once. Answer the one grill
+   message, then approve the tickets. The approval message shows `ralph/preflight --plan`; the
+   agent commits only the plan files once it is clean.
+2. **Session 2 (build):** `ralph/once.sh`, once per ticket (`fine` = up to 3 passes). Stay at the
+   terminal and narrate. The "Fast-track constraints" block in the PRD reaches ralph because
+   `once.sh` puts the whole PRD in its payload.
+3. **Session 3 (review):** run the review command ralph prints. Fix only hard standard violations
+   and spec misses (Spec categories a and c); explain the judgement-call smells out loud.
+4. **After a practice run:** `bin/run-metrics ~/.pi/agent/sessions/<…>/<session>.jsonl` and add a
+   row to `iteration-log.md`.
+
+## Stage caps at a glance (prompt v6)
+
+| Stage | Cap | Your job |
+|---|---|---|
+| Grill | 1 message: Stack + Seam + Branch lines, ≤5 questions with recommendations | "ok" / "ok except Qn: …" (seam and branch y/n in the same reply) |
+| Spec | `fine`: 2–3 stories · `coarse`: 3–6; 1 seam | nothing (already decided) |
+| Onboard (only if recon shows MISSING) | `bin/onboard-project`, never hand-written; 1 commit on the default branch | Check the profile, reply y |
+| Tickets | `fine`: 1 AFK per story, ≤3 · `coarse`: 1 (2 with prefactor); UI criteria get a system test or a manual check | Read the stories, each ticket's criteria and Tests, Decisions + preflight; reply y |
+| Commit plan | 1 commit, plan files only, first commit of `feature/<slug>` | Approve it; a WARN about foreign commits on the branch is yours to settle |
+| ralph | 1 pass per ticket, all the profile's gates + `ralph/asset-check` | Stay at the terminal and narrate |
+| Review | Run in full, fix a and c only | Explain the rest out loud |
+| PR | from `feature/<slug>`: the plan + one commit per ticket, nothing else | Open it |
+
+## Iterating
+
+- Change caps in `fast-track-prompt.md` only, and bump its version line (`FAST-TRACK MODE vN`).
+- Every change should point to a row in `iteration-log.md` that motivated it.
+- Workflow problems (skills, ralph, gates) are not fixed here: record them with `bin/fb` in the
+  practice project and feed them back to the boilerplate.

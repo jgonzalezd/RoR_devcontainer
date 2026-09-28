@@ -58,6 +58,7 @@ A list of implementation decisions that were made. This can include:
 - Schema changes
 - API contracts
 - Specific interactions, including every rule, limit and edge case settled in the conversation
+- Under the `fine` ticket profile (see Further Notes): each technical decision as its own item (schema and its constraints, whose data each query may see, input normalisation, request and response shapes, what saves together or not at all), ending with an *Implication:* line that states its consequence for users or the business in one sentence. Tickets copy these items word for word, so settle them here.
 - Greenfield: the boilerplate variant, with the `VARIANTS.md` signals this spec states, the row they match, and the rejected alternatives; pre-repo, the user confirms it before the repo is created
 
 Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
@@ -78,6 +79,8 @@ A description of the things that are out of scope for this spec.
 
 ## Further Notes
 
-Any further notes about the feature.
+The first line is `Ticket profile: fine` or `Ticket profile: coarse`. `fine` is for small tickets that a low-reasoning executor can follow: use it when the user asked for it in this conversation. Otherwise use `coarse`.
+
+Then any further notes about the feature.
 
 </spec-template>
