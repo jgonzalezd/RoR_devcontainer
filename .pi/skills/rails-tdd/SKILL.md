@@ -30,6 +30,9 @@ Read these references before larger design changes:
 ## 2) Green
 
 - Write the smallest production change to pass.
+- When a Rails generator makes what you need (model, migration, controller, mailer, job), run `bin/rails generate … --skip`
+  and edit its output instead of writing those files from memory. `--skip` keeps existing files, such as the test you
+  just wrote, and never stops to ask.
 - Re-run the single test, then the file.
 
 ## 3) Refactor
