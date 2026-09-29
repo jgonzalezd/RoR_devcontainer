@@ -7,7 +7,7 @@ metadata:
   upstream: mattpocock/skills@c55ee46:skills/engineering/to-spec
 ---
 
-This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
+This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know. The seams check (step 2) and the rules round (step 3) are confirmations, not an interview.
 
 ## Process
 
@@ -17,7 +17,9 @@ This skill takes the current conversation context and codebase understanding and
 
 Check with the user that these seams match their expectations.
 
-3. Write the spec using the template below, then publish it to the project issue tracker (`issues/prd.md`).
+3. Draft the user stories, then the business rules they need (ADR-0010): for each story, what it allows, limits or requires (who may do what, how many, until when, what happens at the edges), one testable rule per line, in glossary words. Mark each rule the conversation settled `Settled`. In an existing app, read `RULES.md` (with a `CONTEXT-MAP.md`, each context's) and add each registered rule the stories touch: `Keeps` when the feature leaves it as it is, `Changes` with the new text when it changes it. Every other rule is one you assumed. Put all of them to the user in one round, in the grilling format (numbered, with your recommended answer); each answer makes a rule `Confirmed`, and a rule the user leaves open is `Open`. Write the spec only after that round.
+
+4. Write the spec using the template below, then publish it to the project issue tracker (`issues/prd.md`).
 
 Record each implementation decision that passes all three ADR criteria as an ADR, unless it already has one, and cite it in the decision (by number; by path when `CONTEXT-MAP.md` exists). The criteria: **constrains future work**: hard to reverse (the cost of changing your mind later is meaningful), or later work must conform to it; **surprising without context**; **the result of a real trade-off**. Write it to `adr/ADR-NNNN-<slug>.md` (a context's own `adr/` when `CONTEXT-MAP.md` lists one; next number) with `Status` (`accepted` only if the user explicitly settled the decision in this conversation, and `Evidence` says so; otherwise `proposed`), `Date` and `Evidence` lines, then Context, Decision, Consequences, Revisit triggers.
 
@@ -47,6 +49,18 @@ US-1. As a mobile bank customer, I want to see balance on my accounts, so that I
 
 This list of user stories should be extremely extensive and cover all aspects of the feature.
 
+## Business Rules
+
+Every rule the stories need, one per line, numbered `BR-001`, `BR-002`, … and unique across the repo: continue after the highest ID in `RULES.md` and any earlier PRD (`BR-001` pre-repo). A `Keeps` or `Changes` rule keeps its registered ID. Each rule is in the format of:
+
+BR-001. <one testable rule, in glossary words> (US-n, …) [Settled | Confirmed | Open | Keeps | Changes]
+
+<business-rule-example>
+BR-001. A mobile bank customer sees only the accounts they own. (US-1) [Settled]
+</business-rule-example>
+
+`Settled`: the conversation settled it. `Confirmed`: you assumed it and the user confirmed it in the rules round. `Open`: the user left it open. `Keeps`: a registered rule the feature must not break. `Changes`: a registered rule the feature changes, with its new text. Tickets copy these lines word for word, so each rule is a sentence a test can check.
+
 ## Implementation Decisions
 
 A list of implementation decisions that were made. This can include:
@@ -57,7 +71,7 @@ A list of implementation decisions that were made. This can include:
 - Architectural decisions
 - Schema changes
 - API contracts
-- Specific interactions, including every rule, limit and edge case settled in the conversation
+- Specific interactions, and the limits and edge cases of the technical design (the business rules themselves go in Business Rules)
 - Under the `fine` ticket profile (see Further Notes): each technical decision as its own item (schema and its constraints, whose data each query may see, input normalisation, request and response shapes, what saves together or not at all), ending with an *Implication:* line that states its consequence for users or the business in one sentence. Tickets copy these items word for word, so settle them here.
 - Dependencies (ADR-0009): each new library the feature needs and why. Prefer an established library over planning to hand-write a solved problem. Any limit on libraries states its reason
 - Greenfield: the boilerplate variant, with the `VARIANTS.md` signals this spec states, the row they match, and the rejected alternatives; pre-repo, the user confirms it before the repo is created

@@ -41,9 +41,9 @@ Break the work into **tracer bullet** tickets.
 
 Give each ticket its **blocking edges**: the other tickets that must complete before it can start. A ticket with no blockers can start immediately.
 
-List the user stories (`US-n`) each ticket delivers. Every story in the spec must be delivered by at least one ticket; only a prefactor (including development infrastructure the slices need, such as a runnable test suite) or a wide-refactor step (below) delivers none. Every rule, limit and edge case in the spec's Implementation Decisions lands in the acceptance criteria of the first ticket where it can be tested; that ticket also lists the story the rule serves.
+List the user stories (`US-n`) each ticket delivers. Every story in the spec must be delivered by at least one ticket; only a prefactor (including development infrastructure the slices need, such as a runnable test suite) or a wide-refactor step (below) delivers none. Every `Settled`, `Confirmed` or `Changes` rule in the spec's Business Rules lands, word for word with its ID (`BR-NNN. <rule>`, without the stories and status), as an acceptance criterion of the first ticket where it can be tested; that ticket also lists a story the rule serves (ADR-0010). A `Changes` rule's ticket also updates the tests named with its ID. No ticket carries a `Keeps` rule: its tests already enforce it. Every limit and edge case in the spec's Implementation Decisions lands the same way, in its own words.
 
-Classify each ticket **AFK** or **HITL**, with a one-line reason. **AFK**: an agent can complete it unattended within the spec's and ADRs' boundaries. **HITL**: it needs a human decision, credentials, a risky or irreversible step such as a destructive data migration or a security-sensitive change, or judgment beyond the spec, such as a rule the spec leaves open (don't invent it). Security-sensitive means sign-in, the role and permission model, secrets, or personal data shown to a new audience, even when the spec accepted it; enforcing an existing, already-reviewed role on a new action is not.
+Classify each ticket **AFK** or **HITL**, with a one-line reason. **AFK**: an agent can complete it unattended within the spec's and ADRs' boundaries. **HITL**: it needs a human decision, credentials, a risky or irreversible step such as a destructive data migration or a security-sensitive change, or judgment beyond the spec, such as a rule the spec leaves open (an `Open` rule, or one it doesn't state: don't invent it). Security-sensitive means sign-in, the role and permission model, secrets, or personal data shown to a new audience, even when the spec accepted it; enforcing an existing, already-reviewed role on a new action is not.
 
 **Wide refactors are the exception to vertical slicing.** A **wide refactor** is one mechanical change (rename a column, retype a shared symbol) whose **blast radius** fans across the whole codebase, so a single edit breaks thousands of call sites at once and no vertical slice can land green. Don't force it into a tracer bullet; sequence it as **expand–contract**. First expand: add the new form beside the old so nothing breaks. Then migrate the call sites over in batches sized by blast radius (per package, per directory), each batch its own ticket blocked by the expand, keeping CI green batch to batch because the old form still exists. Finally contract: delete the old form once no caller remains, in a ticket blocked by every migrate batch. When even the batches can't stay green alone, keep the sequence but let them share an integration branch that all block a final integrate-and-verify ticket; green is promised only there. These batches and the integrate-and-verify ticket are HITL.
 
@@ -55,6 +55,7 @@ Present the proposed breakdown as a numbered list. For each ticket, show:
 - **Blocked by**: which other tickets (if any) must complete first
 - **What it delivers**: the end-to-end behaviour this ticket makes work
 - **Stories**: the `US-n` it delivers
+- **Rules**: the `BR-NNN` it carries
 - **Mode**: AFK or HITL, and why
 - **Under `fine`**: the Technical decisions it carries and its test names
 
@@ -73,12 +74,12 @@ Iterate until the user approves the breakdown.
 
 Publish the approved tickets. Write one file per ticket under `issues/<NNN>-<slug>.md`, numbered in dependency order (blockers first), continuing after the highest number in `issues/` and `issues/done/` (from `001` if there is none). Each file's `blocked_by` lists the ids it depends on; its **Blocked by:** line repeats them with titles. Use the per-ticket file template below: one ticket per file, never a single combined file.
 
-Derive each ticket's acceptance criteria from its stories and the spec's Implementation and Testing Decisions, including every rule, limit and edge case they settle and the seams to test at.
+Derive each ticket's acceptance criteria from its stories, the Business Rules it carries (copied as above) and the spec's Implementation and Testing Decisions, including every limit and edge case they settle and the seams to test at.
 
 Under `fine`, add two sections after the criteria (template below):
 
 - **Technical decisions:** copy each Implementation Decision from the spec that this ticket's code depends on, with its *Implication:* line, word for word. Don't invent one. A decision the ticket needs that the spec doesn't settle is an open rule (step 3): propose it with its implication in the quiz. If the user settles it, write it here ending with `(settled in the to-tickets quiz)`; otherwise the ticket stays HITL.
-- **Tests:** the test file, the existing test whose pattern to copy, and one line per test: its name carrying a `US-n` from `stories` and the behaviour it checks, at the seams the spec agreed. Every criterion has at least one test. No commands and no gate list: the loop runs the project's gates.
+- **Tests:** the test file, the existing test whose pattern to copy, and one line per test: its name carrying a `US-n` from `stories` (and the `BR-NNN` of each rule it checks) and the behaviour it checks, at the seams the spec agreed. Every criterion has at least one test. No commands and no gate list: the loop runs the project's gates.
 
 Work the **frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
 
@@ -101,6 +102,7 @@ stories: [<US-n it delivers>]                     # [] only for a prefactor or w
 
 **Blocked by:** the numbers/titles of the tickets that gate this one, or "None (can start immediately)".
 
+- [ ] BR-NNN. <rule, copied word for word from the spec>
 - [ ] Acceptance criterion 1
 - [ ] Acceptance criterion 2
 

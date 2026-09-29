@@ -17,6 +17,7 @@ Most repos have a single context:
 ```
 /
 ├── CONTEXT.md
+├── RULES.md
 ├── adr/
 │   ├── ADR-0001-event-sourced-orders.md
 │   └── ADR-0002-relational-write-model.md
@@ -32,6 +33,7 @@ If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. The ma
 ├── src/
 │   ├── ordering/
 │   │   ├── CONTEXT.md
+│   │   ├── RULES.md                  ← rules this context enforces
 │   │   └── adr/                      ← context-specific decisions
 │   └── billing/
 │       ├── CONTEXT.md
@@ -54,6 +56,10 @@ When the user uses vague or overloaded terms, propose a precise canonical term. 
 
 When domain relationships are being discussed, stress-test them with specific scenarios. Invent scenarios that probe edge cases and force the user to be precise about the boundaries between concepts.
 
+### Bring up the rules already in force
+
+In an existing app, before the decisions that depend on them, find the business rules already in force in the area the session touches (ADR-0010). This is fact-finding, so it's your job, not the user's: dispatch a sub-agent. Read `RULES.md` first, then what the code enforces (validations, database constraints, permission checks, guards) and the tests assert, with file references. Put them in the round as the feature's blast radius: for each rule, does the feature keep it or change it? A rule found in the code but missing from `RULES.md` is added there as soon as the user confirms it is intended, in the format in [RULES-FORMAT.md](./RULES-FORMAT.md). A rule the user calls a bug is one the feature changes. In a new app, skip this.
+
 ### Cross-reference with code
 
 When the user states how something works, check whether the code agrees. If you find a contradiction, surface it: "Your code cancels entire Orders, but you just said partial cancellation is possible. Which is right?"
@@ -62,7 +68,7 @@ When the user states how something works, check whether the code agrees. If you 
 
 When a term is resolved, update `CONTEXT.md` right there. Don't batch these up: capture them as they happen. Use the format in [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md).
 
-The glossary should be totally devoid of implementation details. Do not treat `CONTEXT.md` as a spec, a scratch pad, or a repository for implementation decisions. Its `## Language` section is a glossary and nothing else; leave the file's other sections as they are.
+The glossary should be totally devoid of implementation details. Do not treat `CONTEXT.md` as a spec, a scratch pad, or a repository for implementation decisions. Its `## Language` section is a glossary and nothing else; leave the file's other sections as they are. Business rules go in the spec's Business Rules while they are planned, and in `RULES.md` once they are enforced.
 
 ### Offer ADRs sparingly
 

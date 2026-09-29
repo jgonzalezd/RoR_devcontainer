@@ -32,7 +32,7 @@ Look for the originating spec, in this order:
 3. A spec file under `docs/` or `specs/` matching the branch name or feature.
 4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
 
-A ticket's spec is the ticket plus, from the project's `issues/prd.md`, the stories its `stories:` lists and the rules, limits and edge cases `## Implementation Decisions` settles for them.
+A ticket's spec is the ticket plus, from the project's `issues/prd.md`, the stories its `stories:` lists, the `## Business Rules` its `BR-NNN` criteria carry, and the limits and edge cases `## Implementation Decisions` settles for them.
 
 ### 3. Identify the standards sources
 
@@ -76,7 +76,7 @@ If your harness has no sub-agents, run the two reviews yourself, one after the o
 
 - The diff command, commit list and untracked files.
 - The path or fetched contents of the spec.
-- The brief: "Report: (a) requirements the spec asked for that are missing or partial, including a PRD rule for the ticket's stories that neither the diff nor any ticket's criteria in `issues/` or `issues/done/` carries; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong; (d) each story in the ticket's `stories:` that no test in the change carries in its name, and a ticket with `stories: []` that isn't a prefactor (including development infrastructure the slices need) or wide-refactor step. Quote the spec line for each finding. Under 400 words."
+- The brief: "Report: (a) requirements the spec asked for that are missing or partial, including a PRD rule for the ticket's stories that neither the diff nor any ticket's criteria in `issues/` or `issues/done/` carries; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong; (d) each story in the ticket's `stories:` that no test in the change carries in its name, and a ticket with `stories: []` that isn't a prefactor (including development infrastructure the slices need) or wide-refactor step; (e) business rules (ADR-0010): each `BR-NNN` criterion that no test in the change names, or that the change doesn't add to `RULES.md` word for word, and any change to a `RULES.md` entry, or to a test named with a `BR-NNN`, that the ticket doesn't carry. Quote the spec line for each finding. Under 400 words."
 
 If the spec is missing, skip the Spec sub-agent and note this in the final report.
 
