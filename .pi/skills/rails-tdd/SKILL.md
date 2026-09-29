@@ -1,6 +1,9 @@
 ---
 name: rails-tdd
 description: Test-driven development loop for Rails changes. Use when implementing a feature, fixing a bug, or changing behavior in a Rails project.
+metadata:
+  layer: backend
+  upstream: none
 ---
 
 # Rails TDD

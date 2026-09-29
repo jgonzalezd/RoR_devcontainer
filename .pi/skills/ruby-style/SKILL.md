@@ -1,6 +1,9 @@
 ---
 name: ruby-style
 description: Ruby/Rails style and linting workflow with RuboCop. Use before handoff and when cleaning changed files.
+metadata:
+  layer: backend
+  upstream: none
 ---
 
 # Ruby style

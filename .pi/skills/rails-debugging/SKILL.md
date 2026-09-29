@@ -1,6 +1,9 @@
 ---
 name: rails-debugging
 description: Systematic debugging for Rails issues (failing tests, 500s, wrong data, slow queries). Use when behavior is broken or unexpected.
+metadata:
+  layer: backend
+  upstream: none
 ---
 
 # Rails debugging
