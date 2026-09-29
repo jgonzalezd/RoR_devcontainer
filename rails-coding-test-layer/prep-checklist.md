@@ -5,7 +5,7 @@ Everything here happens before the interview, so none of it runs live.
 ## Never practice in a real project
 
 `to-spec` writes `issues/prd.md`, so a practice run overwrites the project's PRD. Practice only
-in a disposable project: a throwaway from `rails-agent-boilerplate`, or a copy of an existing app
+in a disposable project: a fresh one from `rails-agent-boilerplate`, or a copy of an existing app
 bootstrapped as in "If they hand you their own repo" below. (The v2 baseline ran in secure_notes
 itself, which had no `ralph/`, `issues/` or profile, so nothing it planned could run.)
 

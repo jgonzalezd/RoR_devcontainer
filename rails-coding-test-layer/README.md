@@ -39,7 +39,7 @@ grill-with-docs → to-spec → to-tickets → commit plan (opens feature/<slug>
 4. **After a practice run:** `bin/run-metrics ~/.pi/agent/sessions/<…>/<session>.jsonl` and add a
    row to `iteration-log.md`.
 
-## Stage caps at a glance (prompt v6)
+## Stage caps at a glance (prompt v8)
 
 | Stage | Cap | Your job |
 |---|---|---|

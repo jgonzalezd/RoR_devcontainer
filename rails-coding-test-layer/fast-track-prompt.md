@@ -1,7 +1,7 @@
-FAST-TRACK MODE v6 (live coding interview).
+FAST-TRACK MODE v8 (live coding interview).
 
 BEFORE YOU DO ANYTHING ELSE: wait to be appointed. You need two things from the interviewer:
-- which project to work in (an existing app, or create a throwaway from the boilerplate)
+- which project to work in (an existing app, or a new one from the boilerplate)
 - the feature brief (or a scenario number from scenarios.md)
 
 If either is missing, stop and ask: "Which project and what's the feature brief?"
@@ -19,6 +19,10 @@ SETUP
   Open other files only for a question its output can't answer. No sub-agents.
 - Shell: if recon's Shell line gives a prefix, put it in front of every command you run from then
   on (the ralph scripts are Ruby). Don't hunt for Ruby yourself.
+- New project: name it after the brief's domain, the way a real team would name the app
+  (e.g. `clinic_booking`, `expense_tracker`): lowercase snake_case. Never a name that says it's
+  disposable or a test (throwaway, tmp, test, demo, practice, sandbox, scratch). Before creating it,
+  send one line: "**Project name:** `<name>`. OK? (y / change: ...)".
 - Ticket profile: fine (unless I say coarse).
 - Outputs: the spec goes to `issues/prd.md`, the tickets to `issues/NNN-<slug>.md`, as the skills say.
   Nothing at the project root.
@@ -30,15 +34,34 @@ SETUP
   3. ask "Commit it on <default branch>? (y / change: ...)". On "y", run the commit command it
      printed, exactly: it's the first of the two commits you may make. Then run recon again.
 
+FORMAT (every message to me): Markdown, meant to be scanned under time pressure. Put each item on its
+own line with a blank line between blocks, use short bold labels, and keep the lines short. Never put
+options, criteria or several facts in one run-on line.
+
 GRILLING: one message, exactly this shape, at most 5 questions:
 
-  Stack: <recon VERDICT>. Implication: <recon IMPLICATION>
-  Seam: <the one test seam, the highest available, with its test file>. OK? (y/n)
-  Branch: <recon branch>, <n> commits ahead of <default> -> the plan commit opens feature/<slug>. OK? (y/n)
-  Q1. <decision> — A) … B) … C) … — Recommend: B, because <one line>.
+  **Stack:** <recon VERDICT>
+  *Implication:* <recon IMPLICATION>
+
+  **Seam:** <the one test seam, the highest available> (`<test file>`). OK? (y/n)
+
+  **Branch:** `<recon branch>`, <n> commits ahead of `<default>` → the plan commit opens `feature/<slug>`. OK? (y/n)
+
+  **Q1. <decision, a few words>**
+  - A) …
+  - B) …
+  - C) …
+
+  → **Recommend B**: <one line why>
 
   Example (another domain):
-  Q1. Who can open a shared playlist? — A) anyone with the link B) invited users only C) the owner only — Recommend: B, because links get forwarded.
+
+  **Q1. Who can open a shared playlist?**
+  - A) Anyone with the link
+  - B) Invited users only
+  - C) The owner only
+
+  → **Recommend B**: links get forwarded.
 
 - Ask the decisions that change the most code or tests: whose data it is and who may see it,
   the rule or limit, the failure path, the entry point, what's out of scope.
@@ -73,15 +96,15 @@ SPEC (to-spec)
 
 TICKETS (to-tickets)
 - fine: one AFK ticket per story, at most 3. coarse: one AFK ticket (two only if a prefactor is truly needed).
-- Write the ticket files, then send ONE approval message instead of the quiz:
-  1. the user stories from the spec, word for word (US-n lines)
-  2. per ticket: a line with id, title, stories, blocked by, AFK/HITL and why; then its acceptance
-     criteria and its **Tests:** line, word for word as in the file. This is what I approve, so
-     don't summarise it.
-  3. "Decisions:" every technical decision in the spec, one line each with its implication;
-     mark any that contradicts Out of Scope with CONFLICT
-  4. the output of `ralph/preflight --plan`
-  5. "Approve? (y / change: ...)". Only "y" approves; anything else is a change or a question.
+- Write the ticket files, then send ONE approval message instead of the quiz, in these sections:
+  1. `## Stories`: the user stories from the spec, word for word, one US-n per bullet
+  2. `## Tickets`: per ticket a `### <id> <title>` heading, then one line with stories, blocked by,
+     AFK/HITL and why; then its acceptance criteria as a checklist and its **Tests:** line, word for
+     word as in the file. This is what I approve, so don't summarise it.
+  3. `## Decisions`: every technical decision in the spec, one bullet each with its implication;
+     mark any that contradicts Out of Scope with **CONFLICT**
+  4. `## Preflight`: the output of `ralph/preflight --plan` in a code block
+  5. "**Approve?** (y / change: ...)". Only "y" approves; anything else is a change or a question.
 - A ticket whose criteria include UI covers it: its **Tests:** names one system test in
   `test/system/`, or, when preflight warns there is no Chrome, its last criterion is
   `- [ ] Manual check: <URL>, <what to click>, <what you should see>`. The seam tests alone don't
