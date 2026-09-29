@@ -6,7 +6,8 @@ same gates. It only caps how much each stage produces, measured in counts (round
 stories, tickets, tests), never in minutes.
 
 ```
-grill-with-docs → to-spec → to-tickets → commit plan (opens feature/<slug>) → ralph/once.sh → code-review → PR
+grill-with-docs → to-spec → to-tickets → commit plan (opens feature/<slug>) → ralph/once.sh → code-review
+  → perf-review → ralph/once.sh (perf ticket) → PR
 ```
 
 ## Files
@@ -38,10 +39,16 @@ grill-with-docs → to-spec → to-tickets → commit plan (opens feature/<slug>
    ticket's commit, and stops if the work would change a rule the ticket doesn't carry.
 3. **Session 3 (review):** run the review command ralph prints. Fix only hard standard violations
    and spec misses (Spec categories a and c); explain the judgement-call smells out loud.
-4. **After a practice run:** `bin/run-metrics ~/.pi/agent/sessions/<…>/<session>.jsonl` and add a
+4. **Session 4 (performance):** when the last pass prints the perf-review line, paste
+   `fast-track-prompt.md` in a fresh session and say "performance session", the project and the
+   sha it printed. One message: the blast-radius map and at most 3 findings with evidence (`fine`).
+   Answer it like the grill; Confirm findings (caches, counters, new jobs) are yours to explain out
+   loud and are built only on an explicit yes. The agent commits one perf ticket
+   (`Plan: performance fixes`); run it with `ralph/once.sh`, which then says the PR is next.
+5. **After a practice run:** `bin/run-metrics ~/.pi/agent/sessions/<…>/<session>.jsonl` and add a
    row to `iteration-log.md`.
 
-## Stage caps at a glance (prompt v9)
+## Stage caps at a glance (prompt v10)
 
 | Stage | Cap | Your job |
 |---|---|---|
@@ -52,7 +59,9 @@ grill-with-docs → to-spec → to-tickets → commit plan (opens feature/<slug>
 | Commit plan | 1 commit, plan files only, first commit of `feature/<slug>` | Approve it; a WARN about foreign commits on the branch is yours to settle |
 | ralph | 1 pass per ticket, all the profile's gates + `ralph/asset-check` | Stay at the terminal and narrate |
 | Review | Run in full, fix a and c only | Explain the rest out loud |
-| PR | from `feature/<slug>`: the plan + one commit per ticket, nothing else | Open it |
+| Performance | 1 message: map (≤12 paths) + `fine` ≤3 Fix findings with evidence into 1 ticket (`coarse` ≤5 into ≤2); Confirm only on your yes; 1 commit `Plan: performance fixes` | "ok" / "ok except F2: B"; explain the Confirm trade-offs out loud |
+| ralph (perf) | 1 pass for the perf ticket, same gates | Narrate; the pass ends with "the PR is next" |
+| PR | from `feature/<slug>`: the plan + one commit per ticket, then the perf plan + its ticket commit, nothing else | Open it |
 
 ## Iterating
 

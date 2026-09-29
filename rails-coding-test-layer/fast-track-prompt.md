@@ -1,14 +1,16 @@
-FAST-TRACK MODE v9 (live coding interview).
+FAST-TRACK MODE v10 (live coding interview).
 
 BEFORE YOU DO ANYTHING ELSE: wait to be appointed. You need two things from the interviewer:
 - which project to work in (an existing app, or a new one from the boilerplate)
-- the feature brief (or a scenario number from scenarios.md)
+- the feature brief (or a scenario number from scenarios.md), or "performance session" and the sha
+  ralph/once.sh printed after the last ticket
 
 If either is missing, stop and ask: "Which project and what's the feature brief?"
 Do not guess, do not pick a project yourself, do not assume.
 
 Once appointed, run the normal workflow: grill-with-docs → to-spec → to-tickets → commit plan.
-The caps below limit how much each stage produces. They don't remove any stage.
+For "performance session", run perf-review → commit its ticket instead (see PERFORMANCE); skip the
+rest. The caps below limit how much each stage produces. They don't remove any stage.
 
 SETUP
 - Skills: before each stage, read its SKILL.md and follow it; where it and this prompt differ,
@@ -138,14 +140,53 @@ TICKETS (to-tickets)
   the approval message again.
 
 COMMIT
-When I approve and preflight shows no BLOCKER line, you may commit, and this is the second and last
-commit you may make (the first is onboarding, if it ran): the plan files only, with the command from preflight's NEXT line
+When I approve and preflight shows no BLOCKER line, you may commit, and this is the last commit of
+this session (the one before it is onboarding, if it ran): the plan files only, with the command from preflight's NEXT line
 (`issues/`, `CONTEXT.md`, `adr/`), message "Plan: <feature>". Never write `RULES.md`: ralph
 registers each rule in its ticket's commit. On the default branch that command
 starts with `git switch -c feature/<slug>`: run it as printed; it's the only branch command you may run.
 AGENTS.md's no-commit rule still holds for everything else. Then run `ralph/preflight` once more,
-show its last line, and stop. The rest is mine: ralph/once.sh per ticket, code-review, then the PR
-from feature/<slug>.
+show its last line, and stop. The rest is mine: ralph/once.sh per ticket, code-review, then the
+performance session (a fresh session with this prompt), then the PR from feature/<slug>.
+
+PERFORMANCE (perf-review; appointed with "performance session", after every ticket is done)
+- Read `perf-review` and the skill the profile names for `Performance checklist`, as in SETUP.
+  No recon.sh: the blast-radius map is this session's recon. Fixed point: the sha I gave you.
+- Map: the skill's up / down / sideways walk, at most 12 paths, one per line with file:line.
+  Review only what's on it. Sub-agents only as the skill says (the map, the two axes).
+- ONE message, exactly this shape:
+
+  **Fixed point:** `<sha>` (<n> commits, tickets <ids>)
+
+  **Blast radius:**
+  ```
+  GET /notes → NotesController#index (app/controllers/notes_controller.rb:8) → notes, tags
+    sideways: TagCleanupJob#perform (app/jobs/tag_cleanup_job.rb:5) deletes tags
+  ```
+
+  **F1. <finding, a few words>** (Fix | Confirm)
+  *Evidence:* <query count, query plan line, or the interleaving A reads / B reads / A writes / B writes>
+  - A) <the fix>
+  - B) Leave it
+  → **Recommend A**: <one line why>
+
+  **Watch:** <suspicions without evidence, one per line; never fixed>
+
+- fine: at most 3 Fix findings, all in 1 ticket. coarse: at most 5, in at most 2 tickets. More
+  than the cap: keep the ones with the biggest measured effect; the rest go under Watch.
+- Confirm findings (caching, counter caches, new jobs, new gems, schema changes): say the trade-off
+  in one line and recommend B unless the evidence is strong. They're built only on my explicit
+  "Fn: A", and then count toward the cap. A new limit or pagination is a business rule: Watch only,
+  for a later feature.
+- My answers work as in GRILLING ("ok", "ok except F2: B"). No second round.
+- The ticket: `issues/NNN-perf-<slug>.md`, numbered after the last ticket, AFK, `stories:` the
+  story on the finding's path, one criterion per finding stating the fix, and a **Tests:** line
+  with one regression test per finding (a query count, the index, or the atomic operation), named
+  with the story's US-n. Then run `ralph/preflight --plan`.
+- Commit: when preflight shows no BLOCKER line, run its NEXT command with the message
+  `Plan: performance fixes`: the only commit of this session. Show preflight's last line and stop.
+  The rest is mine: ralph/once.sh for the ticket, then the PR.
+- No approved finding: no ticket, no commit. Say "**No performance ticket:** the PR is next."
 
 TRIPWIRES (stop and tell me; don't push on)
 - You're about to ask a second grilling round.
@@ -160,3 +201,5 @@ TRIPWIRES (stop and tell me; don't push on)
 - preflight WARNs the branch carries commits that aren't this feature's: show it and wait. I decide
   where they go; don't move, rebase or reset anything.
 - The same gate fails twice after a fix.
+- A performance finding sits outside the map, or its fix changes what the user sees: it's Watch or
+  Confirm, never Fix. Findings past the caps: keep the cap, the rest go under Watch.

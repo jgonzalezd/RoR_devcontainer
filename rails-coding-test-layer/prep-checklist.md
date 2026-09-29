@@ -27,6 +27,9 @@ itself, which had no `ralph/`, `issues/` or profile, so nothing it planned could
 - [ ] Confirm the project's ralph checks business rules (ADR-0010): `grep -q "Business Rules"
       ralph/next-ticket`. `bin/new-project` copies the boilerplate's `main`, so a project made before
       that work reached `main` plans BR rules that nothing checks and ralph doesn't register.
+- [ ] Confirm the project has the performance session (ADR-0011): `grep -q perf-review ralph/once.sh`
+      and `ls .pi/skills/perf-review .pi/skills/rails-performance`. Without them the last pass never
+      prints the perf-review line and the session has no skill to read.
 - [ ] Confirm the pinned model answers: `pi --provider openrouter --model google/gemini-3.8-flash -p "ok"`.
 - [ ] If the feature will touch an LLM: the `ruby_llm` client can be stubbed in tests, and no
       test needs a real API key.
