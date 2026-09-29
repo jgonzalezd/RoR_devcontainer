@@ -64,8 +64,11 @@ SPEC (to-spec)
   2. "Current state (fast-track): stack <recon verdict>; auth <mechanism>; seam file <path>; tables <the ones touched>."
   3. "Fast-track constraints: one test per story at the agreed seam plus one edge-case test; a story
      whose criteria include UI (a page, a form control, something the user sees) also gets one system
-     test, or a manual check when preflight warns there is no Chrome; no new gems; no refactors outside
-     the ticket." Copy this line word for word: don't shorten it.
+     test, or a manual check when preflight warns there is no Chrome; new gems only as approved in the
+     grilling, each with its reason (the interview has no time for installs, and the reviewer should see
+     a small diff), though test-only gems the stack's ADRs assume, such as minitest-mock, are always fine;
+     if a limit here would make you hand-write what an established library does, stop and ask
+     (ADR-0009); no refactors outside the ticket." Copy this line word for word: don't shorten it.
   4. "Assumptions (fast-track)", if any.
 
 TICKETS (to-tickets)
