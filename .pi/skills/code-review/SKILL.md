@@ -60,6 +60,8 @@ Each smell reads *what it is* → *how to fix*; match it against the diff:
 
 The Standards axis also carries the **ADR gate**: a decision in the diff that passes all three ADR criteria and has no ADR in `adr/` (or in the `adr/` of a context `CONTEXT-MAP.md` lists) is a finding; one that fails any criterion is not. The criteria: **constrains future work**: hard to reverse (the cost of changing your mind later is meaningful), or later work must conform to it; **surprising without context**; **the result of a real trade-off**. An ADR the change adds as `accepted` whose Evidence doesn't show the user settled the decision should be `proposed`: a finding. So is any edit to an accepted ADR other than marking it superseded.
 
+The Standards axis also carries the **reuse gate** (ADR-0009). A finding is code in the diff that re-implements what an established library already does (a stub or mock helper, an HTTP client, a parser, retry or date logic), unless an ADR, the PRD or the ticket approved hand-writing it. The fix names the library.
+
 ### 4. Spawn both sub-agents in parallel
 
 If your harness has no sub-agents, run the two reviews yourself, one after the other: write the Standards report in full before you start the Spec review, then write the Spec report without revising the first.

@@ -59,6 +59,7 @@ A list of implementation decisions that were made. This can include:
 - API contracts
 - Specific interactions, including every rule, limit and edge case settled in the conversation
 - Under the `fine` ticket profile (see Further Notes): each technical decision as its own item (schema and its constraints, whose data each query may see, input normalisation, request and response shapes, what saves together or not at all), ending with an *Implication:* line that states its consequence for users or the business in one sentence. Tickets copy these items word for word, so settle them here.
+- Dependencies (ADR-0009): each new library the feature needs and why. Prefer an established library over planning to hand-write a solved problem. Any limit on libraries states its reason
 - Greenfield: the boilerplate variant, with the `VARIANTS.md` signals this spec states, the row they match, and the rejected alternatives; pre-repo, the user confirms it before the repo is created
 
 Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
