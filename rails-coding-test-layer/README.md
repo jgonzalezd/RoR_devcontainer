@@ -17,7 +17,7 @@ grill-with-docs → to-spec → to-tickets → commit plan (opens feature/<slug>
 | `prep-checklist.md` | What to do before the interview so no setup happens live. |
 | `scenarios.md` | Practice briefs with the trap each grill should surface. |
 | `iteration-log.md` | One row per practice run; the evidence for changing the prompt. |
-| `recon.sh` | `recon.sh <project>`: read-only, ~0.1 s. Stack verdict from usage (file:line evidence) + implication, auth, schema, routes, models, controllers, test prior art, workflow files. The grill's one recon call. |
+| `recon.sh` | `recon.sh <project>`: read-only, ~0.1 s. Stack verdict from usage (file:line evidence) + implication, auth, schema, routes, models, rules in force (`RULES.md`, next `BR` ID), controllers, test prior art, workflow files. The grill's one recon call. |
 | `bin/run-metrics` | `bin/run-metrics <pi session.jsonl>`: per-turn human/model time, AFK? flags, stalls, round trips. Fills the log's timing columns. |
 | `audits/` | Audit decision logs; each one names the prompt version it drives. |
 
@@ -33,20 +33,22 @@ grill-with-docs → to-spec → to-tickets → commit plan (opens feature/<slug>
    agent commits only the plan files once it is clean.
 2. **Session 2 (build):** `ralph/once.sh`, once per ticket (`fine` = up to 3 passes). Stay at the
    terminal and narrate. The "Fast-track constraints" block in the PRD reaches ralph because
-   `once.sh` puts the whole PRD in its payload.
+   `once.sh` puts the whole PRD in its payload. Business rules (`BR-NNN`, ADR-0010) are the
+   workflow's job from here: ralph registers each rule its ticket carries in `RULES.md` in the
+   ticket's commit, and stops if the work would change a rule the ticket doesn't carry.
 3. **Session 3 (review):** run the review command ralph prints. Fix only hard standard violations
    and spec misses (Spec categories a and c); explain the judgement-call smells out loud.
 4. **After a practice run:** `bin/run-metrics ~/.pi/agent/sessions/<…>/<session>.jsonl` and add a
    row to `iteration-log.md`.
 
-## Stage caps at a glance (prompt v8)
+## Stage caps at a glance (prompt v9)
 
 | Stage | Cap | Your job |
 |---|---|---|
-| Grill | 1 message: Stack + Seam + Branch lines, ≤5 questions with recommendations | "ok" / "ok except Qn: …" (seam and branch y/n in the same reply) |
-| Spec | `fine`: 2–3 stories · `coarse`: 3–6; 1 seam | nothing (already decided) |
+| Grill | 1 message: Stack + Seam + Branch lines, Rules in force (existing app), ≤5 questions with recommendations | "ok" / "ok except Qn: …" (seam and branch y/n in the same reply; ok keeps the rules in force) |
+| Spec | `fine`: 2–3 stories, ≤2 business rules per story and ≤5 in all · `coarse`: 3–6 stories, ≤8 rules; 1 seam | nothing (already decided) |
 | Onboard (only if recon shows MISSING) | `bin/onboard-project`, never hand-written; 1 commit on the default branch | Check the profile, reply y |
-| Tickets | `fine`: 1 AFK per story, ≤3 · `coarse`: 1 (2 with prefactor); UI criteria get a system test or a manual check | Read the stories, each ticket's criteria and Tests, Decisions + preflight; reply y |
+| Tickets | `fine`: 1 AFK per story, ≤3 · `coarse`: 1 (2 with prefactor); UI criteria get a system test or a manual check | Read the stories, the Business Rules, each ticket's criteria and Tests, Decisions + preflight; y also confirms the rules marked (assumed) |
 | Commit plan | 1 commit, plan files only, first commit of `feature/<slug>` | Approve it; a WARN about foreign commits on the branch is yours to settle |
 | ralph | 1 pass per ticket, all the profile's gates + `ralph/asset-check` | Stay at the terminal and narrate |
 | Review | Run in full, fix a and c only | Explain the rest out loud |

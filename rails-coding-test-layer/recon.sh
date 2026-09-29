@@ -3,7 +3,7 @@
 #
 #   rails-coding-test-layer/recon.sh [project_dir]     (default: current directory)
 #
-# Prints: STACK verdict with file:line evidence, auth, schema, routes, models, controllers,
+# Prints: STACK verdict with file:line evidence, auth, schema, routes, models, rules in force, controllers,
 # tests and test prior art, git branch, workflow files. The stack is judged by what the code USES
 # (JS mounts, render calls, view helpers), never by which gems are installed: a default
 # Rails 8 app ships turbo-rails even when every page is a Vue or React island.
@@ -133,6 +133,17 @@ for m in app/models/*.rb; do
   lines=$(grep -nE '^\s*(belongs_to|has_many|has_one|has_and_belongs|validates?|scope|has_secure_password)' "$m" | sed -E 's/^([0-9]+):\s*/\1: /' | cap 6 | paste -sd';' -)
   echo "- $m${lines:+: $lines}"
 done | cap 15
+
+# Business rules (ADR-0010): the register first; the validations above and the schema's
+# constraints are the rules in code. The next ID continues after RULES.md, the PRD and tickets.
+section "Rules in force (RULES.md)"
+if [ -f RULES.md ]; then
+  grep -E '^(## |- \*\*BR-[0-9]{3}\.\*\*)' RULES.md | cap 15
+else
+  echo "none registered (the validations above and the schema's constraints are the rules in code)"
+fi
+hi=$(cat RULES.md issues/*.md issues/done/*.md 2>/dev/null | grep -oE 'BR-[0-9]{3}' | sort -u | tail -n1 | sed 's/BR-//')
+printf 'next rule ID: BR-%03d\n' $(( 10#${hi:-0} + 1 ))
 
 section "Controllers (actions; render mode)"
 find app/controllers -name '*.rb' -not -name application_controller.rb | sort | while read -r c; do

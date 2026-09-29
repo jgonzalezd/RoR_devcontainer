@@ -24,6 +24,9 @@ itself, which had no `ralph/`, `issues/` or profile, so nothing it planned could
       Claude Code Bash allowlist (it prints the exact `permissions.allow` rules to add).
 - [ ] Fix its WARN lines that would fail a gate live, above all Chrome for `test:system`: this
       devcontainer has none, so the first ticket that adds a system test fails every pass.
+- [ ] Confirm the project's ralph checks business rules (ADR-0010): `grep -q "Business Rules"
+      ralph/next-ticket`. `bin/new-project` copies the boilerplate's `main`, so a project made before
+      that work reached `main` plans BR rules that nothing checks and ralph doesn't register.
 - [ ] Confirm the pinned model answers: `pi --provider openrouter --model google/gemini-3.8-flash -p "ok"`.
 - [ ] If the feature will touch an LLM: the `ruby_llm` client can be stubbed in tests, and no
       test needs a real API key.
