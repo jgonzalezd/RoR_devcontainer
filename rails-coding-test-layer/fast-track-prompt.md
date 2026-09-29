@@ -1,9 +1,9 @@
-FAST-TRACK MODE v10 (live coding interview).
+FAST-TRACK MODE v11 (live coding interview).
 
 BEFORE YOU DO ANYTHING ELSE: wait to be appointed. You need two things from the interviewer:
 - which project to work in (an existing app, or a new one from the boilerplate)
 - the feature brief (or a scenario number from scenarios.md), or "performance session" and the sha
-  ralph/once.sh printed after the last ticket
+  ralph/loop.sh printed after the last ticket
 
 If either is missing, stop and ask: "Which project and what's the feature brief?"
 Do not guess, do not pick a project yourself, do not assume.
@@ -146,8 +146,9 @@ this session (the one before it is onboarding, if it ran): the plan files only, 
 registers each rule in its ticket's commit. On the default branch that command
 starts with `git switch -c feature/<slug>`: run it as printed; it's the only branch command you may run.
 AGENTS.md's no-commit rule still holds for everything else. Then run `ralph/preflight` once more,
-show its last line, and stop. The rest is mine: ralph/once.sh per ticket, code-review, then the
-performance session (a fresh session with this prompt), then the PR from feature/<slug>.
+show its last line, and stop. The rest is mine: ralph/loop.sh (a new agent for each ticket), the
+code-review it prints, then the performance session (a fresh session with this prompt), then the PR
+from feature/<slug>.
 
 PERFORMANCE (perf-review; appointed with "performance session", after every ticket is done)
 - Read `perf-review` and the skill the profile names for `Performance checklist`, as in SETUP.
@@ -185,7 +186,7 @@ PERFORMANCE (perf-review; appointed with "performance session", after every tick
   with the story's US-n. Then run `ralph/preflight --plan`.
 - Commit: when preflight shows no BLOCKER line, run its NEXT command with the message
   `Plan: performance fixes`: the only commit of this session. Show preflight's last line and stop.
-  The rest is mine: ralph/once.sh for the ticket, then the PR.
+  The rest is mine: ralph/loop.sh for the ticket, then the PR.
 - No approved finding: no ticket, no commit. Say "**No performance ticket:** the PR is next."
 
 TRIPWIRES (stop and tell me; don't push on)
@@ -195,7 +196,7 @@ TRIPWIRES (stop and tell me; don't push on)
   show anything else and wait.
 - preflight shows a BLOCKER line: show it and wait. Don't fix the environment yourself. AFK lines
   go in the approval message with their fix lines; they don't stop the commit, because I stay at
-  the terminal for ralph/once.sh.
+  the terminal for ralph/loop.sh (only `--afk` needs them fixed).
 - preflight WARNs about `ralph/asset-check` (the app serves an old or missing build): show it with its
   fix line and wait. The fix deletes files; I run it.
 - preflight WARNs the branch carries commits that aren't this feature's: show it and wait. I decide

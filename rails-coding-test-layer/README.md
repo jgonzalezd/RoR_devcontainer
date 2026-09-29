@@ -6,8 +6,8 @@ same gates. It only caps how much each stage produces, measured in counts (round
 stories, tickets, tests), never in minutes.
 
 ```
-grill-with-docs → to-spec → to-tickets → commit plan (opens feature/<slug>) → ralph/once.sh → code-review
-  → perf-review → ralph/once.sh (perf ticket) → PR
+grill-with-docs → to-spec → to-tickets → commit plan (opens feature/<slug>) → ralph/loop.sh → code-review
+  → perf-review → ralph/loop.sh (perf ticket) → PR
 ```
 
 ## Files
@@ -32,23 +32,25 @@ grill-with-docs → to-spec → to-tickets → commit plan (opens feature/<slug>
    The prompt makes the agent read each skill itself and run `recon.sh` once. Answer the one grill
    message, then approve the tickets. The approval message shows `ralph/preflight --plan`; the
    agent commits only the plan files once it is clean.
-2. **Session 2 (build):** `ralph/once.sh`, once per ticket (`fine` = up to 3 passes). Stay at the
-   terminal and narrate. The "Fast-track constraints" block in the PRD reaches ralph because
-   `once.sh` puts the whole PRD in its payload. Business rules (`BR-NNN`, ADR-0010) are the
+2. **Session 2 (build):** `ralph/loop.sh` (`fine` = up to 3 passes). Every ticket gets a new agent
+   process (workshop ADR-0012): after each commit, type `/exit` and the next ticket starts. Stay at
+   the terminal and narrate. The loop stops at the first pass that isn't `PASS OK`; `ralph/once.sh`
+   re-runs one ticket. The "Fast-track constraints" block in the PRD reaches ralph because
+   `once.sh` (each pass of the loop) puts the whole PRD in its payload. Business rules (`BR-NNN`, ADR-0010) are the
    workflow's job from here: ralph registers each rule its ticket carries in `RULES.md` in the
    ticket's commit, and stops if the work would change a rule the ticket doesn't carry.
-3. **Session 3 (review):** run the review command ralph prints. Fix only hard standard violations
+3. **Session 3 (review):** run the review command the loop prints (one review since the loop's start). Fix only hard standard violations
    and spec misses (Spec categories a and c); explain the judgement-call smells out loud.
-4. **Session 4 (performance):** when the last pass prints the perf-review line, paste
+4. **Session 4 (performance):** when the loop prints the perf-review line, paste
    `fast-track-prompt.md` in a fresh session and say "performance session", the project and the
    sha it printed. One message: the blast-radius map and at most 3 findings with evidence (`fine`).
    Answer it like the grill; Confirm findings (caches, counters, new jobs) are yours to explain out
    loud and are built only on an explicit yes. The agent commits one perf ticket
-   (`Plan: performance fixes`); run it with `ralph/once.sh`, which then says the PR is next.
+   (`Plan: performance fixes`); run it with `ralph/loop.sh`, which then says the PR is next.
 5. **After a practice run:** `bin/run-metrics ~/.pi/agent/sessions/<…>/<session>.jsonl` and add a
    row to `iteration-log.md`.
 
-## Stage caps at a glance (prompt v10)
+## Stage caps at a glance (prompt v11)
 
 | Stage | Cap | Your job |
 |---|---|---|

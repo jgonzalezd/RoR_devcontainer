@@ -27,7 +27,7 @@ itself, which had no `ralph/`, `issues/` or profile, so nothing it planned could
 - [ ] Confirm the project's ralph checks business rules (ADR-0010): `grep -q "Business Rules"
       ralph/next-ticket`. `bin/new-project` copies the boilerplate's `main`, so a project made before
       that work reached `main` plans BR rules that nothing checks and ralph doesn't register.
-- [ ] Confirm the project has the performance session (ADR-0011): `grep -q perf-review ralph/once.sh`
+- [ ] Confirm the project has the performance session (ADR-0011): `grep -q perf-review ralph/once.sh ralph/next-steps`
       and `ls .pi/skills/perf-review .pi/skills/rails-performance`. Without them the last pass never
       prints the perf-review line and the session has no skill to read.
 - [ ] Confirm the pinned model answers: `pi --provider openrouter --model google/gemini-3.8-flash -p "ok"`.
@@ -37,6 +37,9 @@ itself, which had no `ralph/`, `issues/` or profile, so nothing it planned could
 ## If they hand you their own repo
 
 - [ ] Run `rails-agent-boilerplate/bin/onboard-project <their repo>`. It adds `ralph/`, `issues/`,
+- [ ] Confirm the project has the ralph loop (ADR-0012): `test -x ralph/loop.sh && test -x ralph/next-steps`.
+      Without them, `rails-agent-boilerplate/bin/onboard-project .` adds them, but it keeps an older
+      `ralph/once.sh`, which has no `--afk`: copy that one from the boilerplate by hand.
       `AGENTS.md`, `CLAUDE.md`, the skills snapshot (`.pi/skills`, linked from `.claude/skills`), a
       Claude allowlist and a `.pi/project-profile.md` written from what the repo ships. It never
       overwrites a file.
