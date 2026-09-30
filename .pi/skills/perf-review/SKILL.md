@@ -17,7 +17,7 @@ Stack specifics (how to count queries, read a query plan, take a lock) come from
 
 ### 1. Pin the fixed point
 
-The feature's first plan commit, unless the user names another fixed point. Same capture as code-review:
+The feature's first plan commit, unless the user names another fixed point. Same capture as branch-review:
 
 - `git diff --merge-base <fixed-point>` (merge-base against the working tree),
 - untracked files: `git ls-files --others --exclude-standard`,
