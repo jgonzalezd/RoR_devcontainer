@@ -30,6 +30,7 @@ check_tool "yarn" yarn --version
 check_tool "Vue CLI" vue --version
 check_tool "Claude Code" claude --version
 check_tool "Pi" pi --version
+check_tool "GitHub CLI" gh --version
 
 # Register the Pi safety guards (confirm-before-destroy + auto checkpoints) in user settings.
 # Lives outside the repo (~/.pi/agent), so it must be re-applied on every container rebuild.

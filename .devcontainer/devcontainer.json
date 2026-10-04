@@ -4,7 +4,7 @@
 		"dockerfile": "Dockerfile",
 		"args": {
 			"RUBY_VERSION": "3.3.7",
-			"NODE_VERSION": "22",
+			"NODE_VERSION": "24",
 			"POSTGRES_VERSION": "15",
 			"DATABASE_USERNAME": "dbuser",
 			"DATABASE_PASSWORD": "password"
@@ -59,7 +59,7 @@
 		"DISABLED_SERVICES": "mongodb",
 		"PATH": "/home/vscode/.rvm/bin:${containerEnv:PATH}",
 		"RUBY_VERSION": "3.3.7",
-		"NODE_VERSION": "22",
+		"NODE_VERSION": "24",
 		"DATABASE_URL": "${containerEnv:DATABASE_URL}",
 		"POSTGRES_VERSION": "15"
 	},

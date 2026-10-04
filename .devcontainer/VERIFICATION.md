@@ -70,13 +70,14 @@ This document explains how the devcontainer is configured and how to verify it w
 4. **Verify Node/NVM**
    ```bash
    which node
-   # Expected: /home/vscode/.nvm/versions/node/v22.x.x/bin/node
+   # Expected: /home/vscode/.nvm/versions/node/v24.x.x/bin/node
+   # (or /home/vscode/.nvm/current/bin/node in a shell that did not load nvm)
    
    node --version
-   # Expected: v22.x.x
+   # Expected: v24.x.x
    
    npm --version
-   # Expected: 10.x.x (or corresponding npm version)
+   # Expected: 11.x.x (Vue projects from variant/api-spa refuse npm 10)
    
    yarn --version
    # Expected: 1.x.x (or latest)
@@ -91,7 +92,16 @@ This document explains how the devcontainer is configured and how to verify it w
    # Expected: PostgreSQL 15.x version string
    ```
 
-6. **Test in Different Shell Types**
+6. **Verify Chromium/chromedriver (system tests)**
+   ```bash
+   chromium --version
+   # Expected: Chromium NNN.x.x.x built on Ubuntu 22.04...
+
+   chromedriver --version
+   # Expected: ChromeDriver NNN.x.x.x (...) — same major version NNN as chromium
+   ```
+
+7. **Test in Different Shell Types**
    ```bash
    # Test non-login shell
    bash -c "which rails && rails --version"
@@ -106,7 +116,7 @@ This document explains how the devcontainer is configured and how to verify it w
    # Should work
    ```
 
-7. **Run Environment Verification Script**
+8. **Run Environment Verification Script**
    ```bash
    /workspace/verify-environment.sh
    ```
