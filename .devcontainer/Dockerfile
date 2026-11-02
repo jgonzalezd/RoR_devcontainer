@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 # Version Configuration
 ARG POSTGRES_VERSION=15
 ARG RUBY_VERSION=3.3.7
-ARG NODE_VERSION=22
+ARG NODE_VERSION=24
 ARG RAILS_VERSION=7.2.2
 ARG DATABASE_USERNAME=dbuser
 ARG DATABASE_PASSWORD=password
@@ -40,6 +40,7 @@ RUN apt-get -y install --no-install-recommends \
         postgresql-${POSTGRES_VERSION} \
         postgresql-contrib-${POSTGRES_VERSION} \
         postgresql-client-${POSTGRES_VERSION} \
+        postgresql-${POSTGRES_VERSION}-pgvector \
         libpq-dev \
         python3 \
         python3-pip \
@@ -47,10 +48,81 @@ RUN apt-get -y install --no-install-recommends \
         nano \
         sudo \
         openssh-client \
+        gh \
     #
     # Clean up
     && apt-get autoremove -y \
     && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Chromium + chromedriver for Rails system tests. arm64 has no Google Chrome and Ubuntu's chromium is a snap
+# stub, so use the xtradeb PPA (real .debs, browser and driver as a matched pair; serves every project's
+# selenium-webdriver 4.x / cuprite).
+RUN add-apt-repository -y ppa:xtradeb/apps \
+    && apt-get update && apt-get install -y --no-install-recommends chromium chromium-driver \
+    && chromium --version && chromedriver --version \
+    && rm -rf /var/lib/apt/lists/*
+
+# Playwright WebKit (Ubuntu 22.04 list from Playwright 1.64). The browser binary is cached;
+# without these libraries `webkit.launch()` fails with missing GTK, GStreamer, and friends.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libsoup-3.0-0 \
+        libenchant-2-2 \
+        gstreamer1.0-libav \
+        gstreamer1.0-plugins-bad \
+        gstreamer1.0-plugins-base \
+        gstreamer1.0-plugins-good \
+        libicu70 \
+        libatk-bridge2.0-0 \
+        libatk1.0-0 \
+        libcairo2 \
+        libdbus-1-3 \
+        libdrm2 \
+        libegl1 \
+        libepoxy0 \
+        libevdev2 \
+        libffi7 \
+        libfontconfig1 \
+        libfreetype6 \
+        libgbm1 \
+        libgdk-pixbuf-2.0-0 \
+        libgles2 \
+        libglib2.0-0 \
+        libglx0 \
+        libgstreamer-gl1.0-0 \
+        libgstreamer-plugins-base1.0-0 \
+        libgstreamer1.0-0 \
+        libgtk-4-1 \
+        libgudev-1.0-0 \
+        libharfbuzz-icu0 \
+        libharfbuzz0b \
+        libhyphen0 \
+        libjpeg-turbo8 \
+        liblcms2-2 \
+        libmanette-0.2-0 \
+        libnotify4 \
+        libopengl0 \
+        libopenjp2-7 \
+        libopus0 \
+        libpango-1.0-0 \
+        libpng16-16 \
+        libproxy1v5 \
+        libsecret-1-0 \
+        libwayland-client0 \
+        libwayland-egl1 \
+        libwayland-server0 \
+        libwebpdemux2 \
+        libwoff1 \
+        libx11-6 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxkbcommon0 \
+        libxml2 \
+        libxslt1.1 \
+        libx264-163 \
+        libatomic1 \
+        libevent-2.1-7 \
+        libavif13 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
@@ -85,7 +157,8 @@ RUN mkdir -p $NVM_DIR \
     && . $NVM_DIR/nvm.sh \
     && nvm install ${NODE_VERSION} \
     && nvm alias default ${NODE_VERSION} \
-    && nvm use default
+    && nvm use default \
+    && ln -sfn "$NVM_DIR/versions/node/$(nvm version default)" "$NVM_DIR/current"
 
 # Install yarn (via Node's bundled corepack, so the version is managed by Node)
 # and the Vue CLI (provides the `vue` command). Verify both here so a failure
@@ -110,8 +183,9 @@ RUN source ~/.rvm/scripts/rvm \
     && gem list --exact rails \
     && rails --version
 
-# Ensure RVM and Node.js are loaded in the shell environment
-ENV PATH="/home/vscode/.rvm/bin:/home/vscode/.nvm/versions/node/v${NODE_VERSION}/bin:${PATH}"
+# Ensure RVM and Node.js are on PATH even in shells that do not source nvm.sh.
+# nvm installs into versions/node/v<full version>, so link the default to a fixed path.
+ENV PATH="/home/vscode/.rvm/bin:/home/vscode/.nvm/current/bin:${PATH}"
 
 # Install the AI coding agent CLIs: Claude Code (`claude`) and Pi (`pi`).
 #

@@ -30,6 +30,17 @@ This directory contains comprehensive documentation for the Ruby on Rails develo
 
 **When to read**: For day-to-day operations and quick command lookups.
 
+### 📝 [Simultaneous Markdown Previews in VS Code](./VSCode-Multiple-Markdown-Previews.md)
+
+**Editor configuration guide** covering:
+- Why VS Code defaults to a single dynamic preview panel
+- Built-in configuration solutions requiring zero third-party extensions
+- Keybinding setup for locked side-by-side previews (`markdown.showLockedPreviewToSide`)
+- Default preview editor associations (`workbench.editorAssociations`)
+- Manual on-the-fly preview locking workflow
+
+**When to read**: When working with multiple markdown files or documentation simultaneously.
+
 ## Quick Start
 
 ### Check System Health
