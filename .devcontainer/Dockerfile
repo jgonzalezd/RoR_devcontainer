@@ -63,6 +63,68 @@ RUN add-apt-repository -y ppa:xtradeb/apps \
     && chromium --version && chromedriver --version \
     && rm -rf /var/lib/apt/lists/*
 
+# Playwright WebKit (Ubuntu 22.04 list from Playwright 1.64). The browser binary is cached;
+# without these libraries `webkit.launch()` fails with missing GTK, GStreamer, and friends.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libsoup-3.0-0 \
+        libenchant-2-2 \
+        gstreamer1.0-libav \
+        gstreamer1.0-plugins-bad \
+        gstreamer1.0-plugins-base \
+        gstreamer1.0-plugins-good \
+        libicu70 \
+        libatk-bridge2.0-0 \
+        libatk1.0-0 \
+        libcairo2 \
+        libdbus-1-3 \
+        libdrm2 \
+        libegl1 \
+        libepoxy0 \
+        libevdev2 \
+        libffi7 \
+        libfontconfig1 \
+        libfreetype6 \
+        libgbm1 \
+        libgdk-pixbuf-2.0-0 \
+        libgles2 \
+        libglib2.0-0 \
+        libglx0 \
+        libgstreamer-gl1.0-0 \
+        libgstreamer-plugins-base1.0-0 \
+        libgstreamer1.0-0 \
+        libgtk-4-1 \
+        libgudev-1.0-0 \
+        libharfbuzz-icu0 \
+        libharfbuzz0b \
+        libhyphen0 \
+        libjpeg-turbo8 \
+        liblcms2-2 \
+        libmanette-0.2-0 \
+        libnotify4 \
+        libopengl0 \
+        libopenjp2-7 \
+        libopus0 \
+        libpango-1.0-0 \
+        libpng16-16 \
+        libproxy1v5 \
+        libsecret-1-0 \
+        libwayland-client0 \
+        libwayland-egl1 \
+        libwayland-server0 \
+        libwebpdemux2 \
+        libwoff1 \
+        libx11-6 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxkbcommon0 \
+        libxml2 \
+        libxslt1.1 \
+        libx264-163 \
+        libatomic1 \
+        libevent-2.1-7 \
+        libavif13 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create a non-root user
 ARG USERNAME=vscode
 ARG USER_UID=1000

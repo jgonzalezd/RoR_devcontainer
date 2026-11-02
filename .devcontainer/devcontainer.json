@@ -117,8 +117,12 @@
 			"consistency": "delegated"
 		}
 	],
-	// Lifecycle scripts for proper shutdown and cleanup
-	"shutdownAction": "stopContainer",
+	// Never let Cursor stop the container when a window closes. With "stopContainer",
+	// Cursor's hidden agent windows attach every few minutes and, on closing, run
+	// `docker stop` while the main window is still connected. PID 1 ignores SIGTERM,
+	// so Docker SIGKILLs the container and Postgres needs crash recovery on each start.
+	// Stop it by hand when needed: docker stop <container>.
+	"shutdownAction": "none",
 	"waitFor": "postCreateCommand",
 	// // Container capabilities
 	// "capAdd": ["SYS_PTRACE"],
